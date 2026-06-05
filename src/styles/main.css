@@ -1,0 +1,83 @@
+html,
+body,
+:host,
+#app {
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Scrollbar color tokens (centralized) ── */
+:root {
+  --scrollbar-thumb: rgba(156, 163, 175, 0.5);
+  --scrollbar-thumb-hover: rgba(107, 114, 128, 0.7);
+  --scrollbar-track: transparent;
+  --scrollbar-page-bg: #f3f4f6;
+
+  /* Code blocks in rich text */
+  --code-inline-bg: #f3f4f6;
+  --code-inline-text: #111827;
+  --code-block-bg: #f3f4f6;
+
+  /* Component-level scrollbars (modal, tooltip, etc.) */
+  --component-scrollbar-thumb: #cbd5e1;
+  --component-scrollbar-thumb-hover: #94a3b8;
+}
+.dark {
+  --scrollbar-thumb: rgba(75, 85, 99, 0.5);
+  --scrollbar-thumb-hover: rgba(55, 65, 81, 0.7);
+  --scrollbar-page-bg: #111827;
+
+  --code-inline-bg: #374151;
+  --code-inline-text: #f9fafb;
+  --code-block-bg: #1f2937;
+
+  --component-scrollbar-thumb: #475569;
+  --component-scrollbar-thumb-hover: #64748b;
+}
+
+/*
+  Global scrollbar track is transparent so it never shows a visible gutter.
+  Per-page overflow strategy is applied in the respective entry component
+  (e.g. Sidepanel.vue) to avoid affecting popup/options pages.
+*/
+
+.btn {
+  @apply px-[16px] py-[4px] rounded inline-block
+    bg-teal-600 text-white cursor-pointer
+    hover:bg-teal-700
+    disabled:cursor-default disabled:bg-gray-600 disabled:opacity-50;
+}
+
+.icon-btn {
+  @apply inline-block cursor-pointer select-none
+    opacity-75 transition duration-200 ease-in-out
+    hover:opacity-100 hover:text-teal-600;
+  font-size: 0.9em;
+}
+
+.btn-secondary {
+  @apply px-[16px] py-2 rounded-md bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600;
+}
+
+/* ── WebKit Scrollbar (uses CSS variables) ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}

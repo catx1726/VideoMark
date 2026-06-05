@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VideoMark — 在网页视频中标记精彩时刻</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="shortcut icon" type="image/png" href="favicon.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: { 50: '#eff6ff', 100: '#dbeafe', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+    .gradient-text {
+      background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #2563eb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-bg {
+      background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59,130,246,0.15), transparent);
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+    }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100 font-sans antialiased">
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-gray-950/80 backdrop-blur-md border-b border-gray-800">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="icon-128.png" alt="VideoMark" class="w-8 h-8">
+        <span class="text-xl font-bold text-white">VideoMark</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="#features" class="text-sm text-gray-400 hover:text-white transition-colors">功能</a>
+        <a href="#platforms" class="text-sm text-gray-400 hover:text-white transition-colors">支持平台</a>
+        <a href="#faq" class="text-sm text-gray-400 hover:text-white transition-colors">FAQ</a>
+        <a href="https://github.com/catx1726/VideoMark" target="_blank" class="text-sm text-brand-400 hover:text-brand-300 transition-colors">GitHub ↗</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero-bg pt-32 pb-20 px-6">
+    <div class="max-w-4xl mx-auto text-center">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-sm mb-8">
+        <span class="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></span>
+        浏览器扩展 — 本地优先，无需登录
+      </div>
+      <h1 class="text-5xl md:text-7xl font-bold tracking-tight mb-6">
+        让每一处精彩<br>
+        <span class="gradient-text">都有迹可循</span>
+      </h1>
+      <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+        在 YouTube、Bilibili、Twitch 等任意网页视频中，一键标记时间点，随时回跳回顾。直播自动截图，精彩永不错过。
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="#install" class="px-8 py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-brand-600/25 hover:shadow-brand-500/40">
+          立即安装
+        </a>
+        <a href="https://github.com/catx1726/VideoMark" target="_blank" class="px-8 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl transition-all border border-gray-700">
+          查看源码
+        </a>
+      </div>
+      <div class="mt-12 flex items-center justify-center gap-8 text-sm text-gray-500">
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          100% 本地存储
+        </span>
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          无需注册登录
+        </span>
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          隐私优先
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shortcut Highlight -->
+  <section class="py-12 border-y border-gray-800 bg-gray-900/50">
+    <div class="max-w-3xl mx-auto px-6 text-center">
+      <p class="text-gray-400 mb-4">快捷键</p>
+      <div class="inline-flex items-center gap-3 px-6 py-3 bg-gray-800 rounded-xl border border-gray-700">
+        <kbd class="px-3 py-1.5 bg-gray-700 rounded-md font-mono text-lg text-white border border-gray-600">Ctrl</kbd>
+        <span class="text-gray-500">+</span>
+        <kbd class="px-3 py-1.5 bg-gray-700 rounded-md font-mono text-lg text-white border border-gray-600">Shift</kbd>
+        <span class="text-gray-500">+</span>
+        <kbd class="px-3 py-1.5 bg-gray-700 rounded-md font-mono text-lg text-white border border-gray-600">L</kbd>
+      </div>
+      <p class="text-gray-500 mt-3 text-sm">全局快捷键，全屏播放时也能触发。可在扩展管理页面自定义。</p>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="py-24 px-6">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">核心功能</h2>
+      <p class="text-gray-400 text-center mb-16 max-w-xl mx-auto">不只是书签，是带时间坐标的视频记忆</p>
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="feature-card p-6 bg-gray-900 rounded-2xl border border-gray-800 transition-all duration-300 hover:border-brand-500/30">
+          <div class="w-12 h-12 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">一键标记</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">按下 Ctrl+Shift+L，瞬间记录当前视频时间点。无需暂停，不打断观看节奏。</p>
+        </div>
+        <div class="feature-card p-6 bg-gray-900 rounded-2xl border border-gray-800 transition-all duration-300 hover:border-brand-500/30">
+          <div class="w-12 h-12 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">智能截图</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">直播自动截图留存（事后无法回看）；点播视频可选截图策略，省空间也能留回忆。</p>
+        </div>
+        <div class="feature-card p-6 bg-gray-900 rounded-2xl border border-gray-800 transition-all duration-300 hover:border-brand-500/30">
+          <div class="w-12 h-12 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">精准回跳</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">点击侧边栏标记，瞬间回到对应视频、对应时间点。3 层 URL 匹配，绝不会找错视频。</p>
+        </div>
+        <div class="feature-card p-6 bg-gray-900 rounded-2xl border border-gray-800 transition-all duration-300 hover:border-brand-500/30">
+          <div class="w-12 h-12 bg-brand-500/10 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">直播识别</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">自动检测直播流，特殊标记并提示无法跳转。截图留存，让精彩画面不再流逝。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Platforms -->
+  <section id="platforms" class="py-20 px-6 bg-gray-900/30">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-3xl font-bold mb-4">支持任意 HTML5 视频网站</h2>
+      <p class="text-gray-400 mb-12">不限平台，只要有视频就能标记</p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <div class="px-5 py-2.5 bg-gray-800 rounded-full border border-gray-700 text-sm font-medium text-gray-300">YouTube</div>
+        <div class="px-5 py-2.5 bg-gray-800 rounded-full border border-gray-700 text-sm font-medium text-gray-300">YouTube Live</div>
+        <div class="px-5 py-2.5 bg-gray-800 rounded-full border border-gray-700 text-sm font-medium text-gray-300">Bilibili</div>
+        <div class="px-5 py-2.5 bg-gray-800 rounded-full border border-gray-700 text-sm font-medium text-gray-300">Bilibili 直播</div>
+        <div class="px-5 py-2.5 bg-gray-800 rounded-full border border-gray-700 text-sm font-medium text-gray-300">Twitch</div>
+        <div class="px-5 py-2.5 bg-gray-800 rounded-full border border-gray-700 text-sm font-medium text-gray-300">抖音</div>
+        <div class="px-5 py-2.5 bg-gray-800 rounded-full border border-gray-700 text-sm font-medium text-gray-300">西瓜视频</div>
+        <div class="px-5 py-2.5 bg-gray-800 rounded-full border border-gray-700 text-sm font-medium text-gray-300">本地视频文件</div>
+      </div>
+      <p class="text-gray-500 text-sm mt-8">部分网站（如 Netflix、Disney+）受 DRM/CORS 保护，截图功能不可用，但时间戳标记不受影响。</p>
+    </div>
+  </section>
+
+  <!-- Install -->
+  <section id="install" class="py-24 px-6">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="text-3xl font-bold mb-6">开始使用</h2>
+      <div class="grid sm:grid-cols-3 gap-6 mb-12">
+        <div class="p-6 bg-gray-900 rounded-2xl border border-gray-800">
+          <div class="w-10 h-10 bg-brand-600 rounded-full flex items-center justify-center text-white font-bold mx-auto mb-4">1</div>
+          <h4 class="font-semibold mb-2">安装扩展</h4>
+          <p class="text-gray-400 text-sm">从 Firefox/Chrome 商店安装，或手动加载 Release 包</p>
+        </div>
+        <div class="p-6 bg-gray-900 rounded-2xl border border-gray-800">
+          <div class="w-10 h-10 bg-brand-600 rounded-full flex items-center justify-center text-white font-bold mx-auto mb-4">2</div>
+          <h4 class="font-semibold mb-2">播放并标记</h4>
+          <p class="text-gray-400 text-sm">打开任意视频，按下 Ctrl+Shift+L 标记时间点</p>
+        </div>
+        <div class="p-6 bg-gray-900 rounded-2xl border border-gray-800">
+          <div class="w-10 h-10 bg-brand-600 rounded-full flex items-center justify-center text-white font-bold mx-auto mb-4">3</div>
+          <h4 class="font-semibold mb-2">随时回跳</h4>
+          <p class="text-gray-400 text-sm">点击侧边栏标记，瞬间回到视频对应位置</p>
+        </div>
+      </div>
+      <a href="https://github.com/catx1726/VideoMark/releases" target="_blank" class="inline-flex items-center gap-2 px-8 py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-brand-600/25">
+        下载最新版本
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="py-20 px-6 bg-gray-900/30">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-12">常见问题</h2>
+      <div class="space-y-4">
+        <details class="group bg-gray-900 rounded-xl border border-gray-800">
+          <summary class="flex items-center justify-between p-5 cursor-pointer list-none">
+            <span class="font-medium">标记的数据存在哪里？</span>
+            <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">
+            100% 本地存储在浏览器中，无需注册，不采集任何数据。可选通过 GitHub Gist 实现多端同步。
+          </div>
+        </details>
+        <details class="group bg-gray-900 rounded-xl border border-gray-800">
+          <summary class="flex items-center justify-between p-5 cursor-pointer list-none">
+            <span class="font-medium">直播标记为什么无法跳转？</span>
+            <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">
+            直播是实时流，标记的时间点只对应当前直播时刻，直播结束后该时间点已不存在。系统会自动为直播标记截图，让你事后还能看到那个画面。
+          </div>
+        </details>
+        <details class="group bg-gray-900 rounded-xl border border-gray-800">
+          <summary class="flex items-center justify-between p-5 cursor-pointer list-none">
+            <span class="font-medium">快捷键冲突怎么办？</span>
+            <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">
+            可在浏览器扩展管理页面的「键盘快捷键」中自定义，或在 VideoMark 设置页面直接修改。
+          </div>
+        </details>
+        <details class="group bg-gray-900 rounded-xl border border-gray-800">
+          <summary class="flex items-center justify-between p-5 cursor-pointer list-none">
+            <span class="font-medium">支持哪些浏览器？</span>
+            <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">
+            Firefox（推荐）和 Chrome / Edge 等 Chromium 内核浏览器。采用 Manifest V3 标准。
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-12 px-6 border-t border-gray-800">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <img src="icon-128.png" alt="" class="w-6 h-6 opacity-60" onerror="this.style.display='none'">
+        <span class="text-gray-500 text-sm">© VideoMark — MIT License</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="https://github.com/catx1726/VideoMark" target="_blank" class="text-gray-500 hover:text-white text-sm transition-colors">GitHub</a>
+        <a href="https://github.com/catx1726/VideoMark/issues" target="_blank" class="text-gray-500 hover:text-white text-sm transition-colors">Issues</a>
+        <a href="https://github.com/catx1726/VideoMark/releases" target="_blank" class="text-gray-500 hover:text-white text-sm transition-colors">Releases</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
