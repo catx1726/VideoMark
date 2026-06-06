@@ -18,6 +18,7 @@ export const defaultSettings = {
   screenshotWidth: 320, // 截图宽度（px）
   screenshotHeight: 180, // 截图高度（px）
   screenshotQuality: 0.5, // 截图 JPEG 质量（0~1）
+  notePopupStrategy: 'always' as 'always' | 'never' | 'skip-fullscreen', // 备注弹框策略
 }
 
 export function isPageBlacklisted(url: string, blacklist: string[]): boolean {
