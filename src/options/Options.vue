@@ -332,6 +332,52 @@ async function connectSync() {
             </div>
           </div>
 
+          <!-- 弹框策略 -->
+          <div>
+            <label class="block mb-2 text-[14px] font-medium text-gray-700 dark:text-gray-300">弹框策略</label>
+            <p class="text-[13px] text-gray-500 mb-3">
+              标记视频后是否弹出备注输入框。
+            </p>
+            <div class="space-y-2">
+              <label class="flex items-start gap-2 cursor-pointer">
+                <input
+                  v-model="localSettings.notePopupStrategy"
+                  type="radio"
+                  value="always"
+                  class="mt-0.5 h-4 w-4"
+                >
+                <div>
+                  <span class="text-[14px] text-gray-700 dark:text-gray-200">总是弹窗</span>
+                  <p class="text-[12px] text-gray-500">无论是否全屏，标记后都弹出备注框。</p>
+                </div>
+              </label>
+              <label class="flex items-start gap-2 cursor-pointer">
+                <input
+                  v-model="localSettings.notePopupStrategy"
+                  type="radio"
+                  value="skip-fullscreen"
+                  class="mt-0.5 h-4 w-4"
+                >
+                <div>
+                  <span class="text-[14px] text-gray-700 dark:text-gray-200">仅全屏状态不弹窗</span>
+                  <p class="text-[12px] text-gray-500">全屏观看时不弹框，避免遮挡视频内容。</p>
+                </div>
+              </label>
+              <label class="flex items-start gap-2 cursor-pointer">
+                <input
+                  v-model="localSettings.notePopupStrategy"
+                  type="radio"
+                  value="never"
+                  class="mt-0.5 h-4 w-4"
+                >
+                <div>
+                  <span class="text-[14px] text-gray-700 dark:text-gray-200">从不弹窗</span>
+                  <p class="text-[12px] text-gray-500">标记后仅显示 Toast 提示，不弹框。</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
           <!-- 截图策略 -->
           <div>
             <label class="block mb-2 text-[14px] font-medium text-gray-700 dark:text-gray-300">截图策略</label>
