@@ -1,4 +1,5 @@
 import { sendMessage } from 'webext-bridge/content-script'
+import { showNotePopup } from './uiManager'
 import { settings } from '~/logic/settings'
 import { querySelectorAllDeep } from '~/logic/dom'
 import type { Mark } from '~/logic/storage'
@@ -64,6 +65,18 @@ export function findActiveVideo(): HTMLVideoElement | null {
   })
 
   return candidates[0]
+}
+
+/**
+ * 检测当前是否处于全屏状态
+ */
+function isFullscreen(): boolean {
+  return !!(
+    document.fullscreenElement
+    || (document as any).webkitFullscreenElement
+    || (document as any).mozFullScreenElement
+    || (document as any).msFullscreenElement
+  )
 }
 
 /**
@@ -371,6 +384,28 @@ export async function saveVideoMark(): Promise<{ success: boolean, message?: str
 
     // 显示一个短暂的视觉反馈（可选：Toast 或页面内提示）
     showFeedbackToast(`已标记: ${mark.text}${mark.isLive ? ' (直播)' : ''}`)
+
+    // 根据配置决定是否弹出备注框
+    const strategy = settings.value.notePopupStrategy || 'always'
+    const shouldSkipPopup = strategy === 'never' || (strategy === 'skip-fullscreen' && isFullscreen())
+
+    if (!shouldSkipPopup) {
+      showNotePopup(mark, async (note: string) => {
+        if (note && note.trim()) {
+          try {
+            await sendMessage('update-mark-details', {
+              id: mark.id,
+              updates: { note: note.trim() },
+            }, 'background')
+            showFeedbackToast('备注已保存')
+          }
+          catch (error) {
+            console.error('[VideoMarker] Failed to save note:', error)
+            showFeedbackToast('备注保存失败')
+          }
+        }
+      })
+    }
 
     return { success: true }
   }
