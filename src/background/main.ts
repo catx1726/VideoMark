@@ -277,6 +277,38 @@ onMessage<GetMarkByIdPayload>('get-mark-by-id', async ({ data }) => {
   return undefined
 })
 
+onMessage('show-screenshot-preview', async ({ data }) => {
+  try {
+    const { mark } = data
+    if (!mark?.url) {
+      return { success: false, message: 'Mark URL missing' }
+    }
+    const allTabs = await browser.tabs.query({})
+    const targetUrl = new URL(mark.url)
+    const targetBase = targetUrl.origin + targetUrl.pathname
+    const tab = allTabs.find((t) => {
+      if (!t.url)
+        return false
+      try {
+        const tabUrl = new URL(t.url)
+        return tabUrl.origin + tabUrl.pathname === targetBase
+      }
+      catch {
+        return false
+      }
+    })
+    if (tab?.id) {
+      await sendMessage('show-screenshot-preview', mark, { context: 'content-script', tabId: tab.id })
+      return { success: true }
+    }
+    return { success: false, message: 'No matching tab found' }
+  }
+  catch (error) {
+    console.error('Failed to forward screenshot preview:', error)
+    return { success: false, message: (error as Error).message }
+  }
+})
+
 onMessage('get-storage-usage', async () => {
   const usage = await (browser.storage.local as any).getBytesInUse()
   const rawQuota = (browser.storage.local as any).QUOTA_BYTES
