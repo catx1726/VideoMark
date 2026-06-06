@@ -70,7 +70,7 @@ async function handleScreenshotClick() {
     })
 
     if (tab?.id) {
-      await sendMessage('show-screenshot-preview', toRaw(props.mark), { context: 'content-script', tabId: tab.id })
+      await sendMessage('show-screenshot-preview', { mark: toRaw(props.mark) }, { context: 'content-script', tabId: tab.id })
     }
     else {
       previewImage.value = props.mark.screenshot
