@@ -98,6 +98,8 @@ async function removeAllMarksForUrl(url: string) {
 
   try {
     await sendMessage('remove-marks-by-url', { url }, 'background')
+    // 通知 content script 刷新标记轨道
+    await notifyTabToRefreshTrack(url)
   }
   catch (error) {
     console.error('Failed to remove marks by url:', error)
@@ -123,11 +125,38 @@ async function removeGroupMarks(url: string, group: any) {
 
   try {
     await sendMessage('remove-marks', { marks: marksToRemove.map(toRaw) }, 'background')
+    // 通知 content script 刷新标记轨道
+    await notifyTabToRefreshTrack(url)
   }
   catch (error) {
     console.error('Failed to remove marks:', error)
   }
   closeMenus()
+}
+
+async function notifyTabToRefreshTrack(url: string) {
+  try {
+    const allTabs = await browser.tabs.query({})
+    const targetUrl = new URL(url)
+    const targetBase = targetUrl.origin + targetUrl.pathname
+    const tab = allTabs.find((t) => {
+      if (!t.url)
+        return false
+      try {
+        const tabUrl = new URL(t.url)
+        return tabUrl.origin + tabUrl.pathname === targetBase
+      }
+      catch {
+        return false
+      }
+    })
+    if (tab?.id) {
+      sendMessage('refresh-mark-track', {}, { context: 'content-script', tabId: tab.id }).catch(() => {})
+    }
+  }
+  catch {
+    // ignore
+  }
 }
 
 onMounted(() => {
