@@ -163,8 +163,7 @@ defineExpose({ show, hide })
         class="w-full min-h-[120px] resize-y rounded-md border border-gray-300 p-3 text-sm leading-relaxed focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:border-blue-400 dark:focus:ring-blue-400 outline-none"
         placeholder="在这里输入你的备注..."
         @keydown.esc="onCancel"
-        @keydown.ctrl.enter="onSave"
-        @keydown.meta.enter="onSave"
+        @keydown.enter="onSave"
       />
 
       <!-- 按钮区域 -->

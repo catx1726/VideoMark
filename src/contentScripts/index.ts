@@ -69,5 +69,12 @@ onMessage('refresh-mark-track', async () => {
 
 onMessage('show-screenshot-preview', ({ data }: any) => {
   console.log('[ContentScript] Received show-screenshot-preview')
-  showScreenshotPreview(data.mark)
+  try {
+    showScreenshotPreview(data.mark)
+    return { success: true }
+  }
+  catch (error) {
+    console.error('[ContentScript] Failed to show screenshot preview:', error)
+    return { success: false, message: (error as Error).message }
+  }
 })
