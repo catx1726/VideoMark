@@ -281,7 +281,7 @@ onMessage<any>('show-screenshot-preview', async ({ data }) => {
   try {
     const { mark } = data
     if (!mark?.url) {
-      return
+      return { success: false, message: 'Invalid mark data' }
     }
     const allTabs = await browser.tabs.query({})
     const targetUrl = new URL(mark.url)
@@ -299,10 +299,13 @@ onMessage<any>('show-screenshot-preview', async ({ data }) => {
     })
     if (tab?.id) {
       await sendMessage('show-screenshot-preview', { mark }, { context: 'content-script', tabId: tab.id })
+      return { success: true }
     }
+    return { success: false, message: 'Target tab not found' }
   }
   catch (error) {
     console.error('Failed to forward screenshot preview:', error)
+    return { success: false, message: (error as Error).message }
   }
 })
 

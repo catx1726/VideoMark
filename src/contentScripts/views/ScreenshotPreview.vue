@@ -1,76 +1,112 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
-
-interface Props {
-  imageSrc: string
-  timestamp: string
-  note?: string
-}
-
-const props = defineProps<Props>()
+import { onMounted, onUnmounted, ref } from 'vue'
 
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
-function onClose() {
-  emit('close')
+const props = defineProps<{
+  imageSrc: string
+  timestamp: string
+  note?: string
+}>()
+
+const visible = ref(false)
+
+function close() {
+  visible.value = false
+  setTimeout(() => {
+    emit('close')
+  }, 200)
 }
 
-function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    event.preventDefault()
-    event.stopPropagation()
-    onClose()
+function handleKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    close()
   }
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeydown, true)
+  window.addEventListener('keydown', handleKeydown)
+  requestAnimationFrame(() => {
+    visible.value = true
+  })
 })
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown, true)
+  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
 <template>
-  <Transition
-    enter-active-class="transition-opacity duration-300 ease-out"
-    enter-from-class="opacity-0"
-    enter-to-class="opacity-100"
-    leave-active-class="transition-opacity duration-200 ease-in"
-    leave-from-class="opacity-100"
-    leave-to-class="opacity-0"
+  <div
+    style="
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    "
+    :style="{ opacity: visible ? 1 : 0 }"
+    @click="close"
   >
     <div
-      v-if="props.imageSrc"
-      class="fixed inset-0 bg-black/90 flex items-center justify-center z-[99999] p-4"
-      @click="onClose"
+      style="
+        position: relative;
+        max-width: 90vw;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      "
+      @click.stop
     >
       <!-- 关闭按钮 -->
       <button
-        class="absolute top-4 right-4 p-2 text-white/70 hover:text-white transition-colors rounded-full hover:bg-white/10"
-        @click.stop="onClose"
+        style="
+          position: absolute;
+          top: -40px;
+          right: 0;
+          color: rgba(255, 255, 255, 0.8);
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 4px;
+          line-height: 1;
+        "
+        @mouseenter="$event.target.style.color = 'white'"
+        @mouseleave="$event.target.style.color = 'rgba(255, 255, 255, 0.8)'"
+        @click="close"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
+        <svg xmlns="http://www.w3.org/2000/svg" style="width: 32px; height: 32px;" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
         </svg>
       </button>
 
-      <!-- 图片和信息容器 -->
-      <div class="flex flex-col items-center gap-4" @click.stop>
-        <img
-          :src="props.imageSrc"
-          class="max-w-[90vw] max-h-[85vh] object-contain rounded-lg shadow-2xl"
-          alt="截图预览"
-        >
-        <div class="flex flex-col items-center gap-1 text-white/90">
-          <span class="text-sm font-mono font-medium">{{ props.timestamp }}</span>
-          <span v-if="props.note" class="text-xs text-white/70 max-w-[80vw] text-center line-clamp-3">{{ props.note }}</span>
-        </div>
+      <!-- 图片 -->
+      <img
+        :src="props.imageSrc"
+        style="
+          max-width: 100%;
+          max-height: 80vh;
+          object-fit: contain;
+          border-radius: 8px;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        "
+        alt="视频截图预览"
+      >
+
+      <!-- 信息区域 -->
+      <div style="margin-top: 16px; text-align: center;">
+        <p style="color: white; font-weight: 500; font-size: 18px; margin: 0;">{{ props.timestamp }}</p>
+        <p v-if="props.note" style="color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-top: 4px; max-width: 400px;">{{ props.note }}</p>
       </div>
     </div>
-  </Transition>
+  </div>
 </template>

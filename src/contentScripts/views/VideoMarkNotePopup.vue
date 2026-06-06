@@ -52,10 +52,6 @@ function onCancel() {
   hide()
 }
 
-function onCloseClick() {
-  onCancel()
-}
-
 function handleKeydown(event: KeyboardEvent) {
   if (!visible.value)
     return
@@ -93,7 +89,6 @@ function onDrag(event: MouseEvent) {
   const newX = event.clientX - dragOffset.x
   const newY = event.clientY - dragOffset.y
 
-  // 边界检查
   const maxX = window.innerWidth - popupWidth - margin
   const maxY = window.innerHeight - popupHeight - margin
 
@@ -123,65 +118,128 @@ defineExpose({ show, hide })
 <template>
   <div
     v-if="visible"
-    class="fixed rounded-lg bg-white shadow-2xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 font-sans"
+    style="
+      position: fixed;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      border: 1px solid #e5e7eb;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      z-index: 99999;
+    "
     :style="{
       top: `${position.y}px`,
       left: `${position.x}px`,
       width: `${popupWidth}px`,
-      zIndex: 99999,
     }"
     @mousedown.stop
   >
     <!-- 标题栏 -->
     <div
-      class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700 cursor-move select-none"
+      style="
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-bottom: 1px solid #f3f4f6;
+        cursor: move;
+        user-select: none;
+      "
       @mousedown="startDrag"
     >
-      <div class="flex items-center gap-2">
+      <div style="display: flex; align-items: center; gap: 8px;">
         <!-- 拖动把手 -->
-        <div class="flex flex-col gap-1">
-          <div class="w-4 h-0.5 bg-gray-300 dark:bg-gray-600 rounded" />
-          <div class="w-4 h-0.5 bg-gray-300 dark:bg-gray-600 rounded" />
-          <div class="w-4 h-0.5 bg-gray-300 dark:bg-gray-600 rounded" />
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          <div style="width: 16px; height: 2px; background: #d1d5db; border-radius: 1px;" />
+          <div style="width: 16px; height: 2px; background: #d1d5db; border-radius: 1px;" />
+          <div style="width: 16px; height: 2px; background: #d1d5db; border-radius: 1px;" />
         </div>
-        <div class="flex items-center gap-1.5">
-          <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">VideoMark</span>
-          <span v-if="timestamp" class="text-xs text-gray-500 dark:text-gray-400 font-mono">{{ timestamp }}</span>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="font-size: 14px; font-weight: 600; color: #1f2937;">VideoMark</span>
+          <span v-if="timestamp" style="font-size: 12px; color: #6b7280; font-family: monospace;">{{ timestamp }}</span>
         </div>
       </div>
 
       <button
-        class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-        @click="onCloseClick"
+        style="
+          padding: 4px;
+          color: #9ca3af;
+          background: none;
+          border: none;
+          cursor: pointer;
+          border-radius: 4px;
+          line-height: 1;
+        "
+        @mouseenter="$event.target.style.color = '#4b5563'"
+        @mouseleave="$event.target.style.color = '#9ca3af'"
+        @click="onCancel"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
         </svg>
       </button>
     </div>
 
     <!-- 内容区域 -->
-    <div class="p-4">
+    <div style="padding: 16px;">
       <textarea
         ref="textareaRef"
         v-model="noteValue"
-        class="w-full min-h-[120px] resize-y rounded-md border border-gray-300 p-3 text-sm leading-relaxed focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:border-blue-400 dark:focus:ring-blue-400 outline-none"
+        style="
+          width: 100%;
+          min-height: 120px;
+          resize: vertical;
+          border-radius: 6px;
+          border: 1px solid #d1d5db;
+          padding: 12px;
+          font-size: 14px;
+          line-height: 1.5;
+          outline: none;
+          box-sizing: border-box;
+          font-family: inherit;
+        "
         placeholder="在这里输入你的备注..."
+        @focus="$event.target.style.borderColor = '#3b82f6'; $event.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)'"
+        @blur="$event.target.style.borderColor = '#d1d5db'; $event.target.style.boxShadow = 'none'"
         @keydown.esc="onCancel"
         @keydown.ctrl.enter="onSave"
         @keydown.meta.enter="onSave"
       />
 
       <!-- 按钮区域 -->
-      <div class="flex justify-end gap-2 mt-3">
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
         <button
-          class="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors"
+          style="
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #4b5563;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+          "
+          @mouseenter="$event.target.style.background = '#f3f4f6'"
+          @mouseleave="$event.target.style.background = 'transparent'"
           @click="onCancel"
         >
           取消
         </button>
         <button
-          class="px-4 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors shadow-sm"
+          style="
+            padding: 6px 16px;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+            background: #2563eb;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+          "
+          @mouseenter="$event.target.style.background = '#1d4ed8'"
+          @mouseleave="$event.target.style.background = '#2563eb'"
           @click="onSave"
         >
           保存
