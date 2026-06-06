@@ -411,6 +411,8 @@ onMessage<{ url: string }>('remove-marks-by-url', async ({ data }) => {
     // 如果未开启同步，立即物理清理以避免残留；否则由同步流程负责清理
     if (!syncConfig.value.enabled)
       await purgeTombstones()
+    // 通知对应标签页刷新标记轨道
+    await notifyTabToRefreshTrack(url)
     return { success: true }
   }
   catch (error) {
@@ -423,6 +425,7 @@ onMessage<{ marks: any[] }>('remove-marks', async ({ data }) => {
   await ensureReady()
   try {
     const { marks } = data
+    const urlsToRefresh = new Set<string>()
     await enqueueWrite(async () => {
       const now = Date.now()
       for (const mToRemove of marks) {
@@ -431,6 +434,7 @@ onMessage<{ marks: any[] }>('remove-marks', async ({ data }) => {
           const mark = marksByUrl.value[url].find(m => m.id === id)
           if (mark) {
             mark.deletedAt = now
+            urlsToRefresh.add(url)
           }
         }
       }
@@ -438,6 +442,10 @@ onMessage<{ marks: any[] }>('remove-marks', async ({ data }) => {
     })
     if (!syncConfig.value.enabled)
       await purgeTombstones()
+    // 通知对应标签页刷新标记轨道
+    for (const url of urlsToRefresh) {
+      await notifyTabToRefreshTrack(url)
+    }
     return { success: true }
   }
   catch (error) {
