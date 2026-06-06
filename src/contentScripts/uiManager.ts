@@ -3,26 +3,35 @@ import type { App } from 'vue'
 import VideoMarkNotePopup from './views/VideoMarkNotePopup.vue'
 import ScreenshotPreview from './views/ScreenshotPreview.vue'
 import type { Mark } from '~/logic/storage'
+import { ShadowDOMManager } from '~/logic/shadowDom'
+import { getMaxZIndex } from '~/logic/dom'
+import browser from 'webextension-polyfill'
 
 const NOTE_CONTAINER_ID = 'videomark-note-popup-container'
 const SCREENSHOT_CONTAINER_ID = 'videomark-screenshot-preview-container'
 
 let noteApp: App | null = null
-let noteContainer: HTMLElement | null = null
+let noteContainer: HTMLDivElement | null = null
 let screenshotApp: App | null = null
-let screenshotContainer: HTMLElement | null = null
+let screenshotContainer: HTMLDivElement | null = null
 
-function ensureContainer(id: string): HTMLElement {
-  let container = document.getElementById(id)
-  if (!container) {
-    container = document.createElement('div')
-    container.id = id
-    document.body.appendChild(container)
-  }
-  return container
+function createShadowContainer(id: string): HTMLDivElement {
+  const container = ShadowDOMManager.createContainer(id, getMaxZIndex() + 100)
+  document.body.appendChild(container)
+  
+  const shadowRoot = container.attachShadow({ mode: 'open' })
+  ShadowDOMManager.attachStylesheet(shadowRoot, browser.runtime.getURL('dist/contentScripts/style.css'))
+  
+  const uiRoot = document.createElement('div')
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  if (isDark)
+    uiRoot.classList.add('dark')
+  shadowRoot.appendChild(uiRoot)
+  
+  return uiRoot
 }
 
-function removeContainer(id: string) {
+function removeShadowContainer(id: string) {
   const container = document.getElementById(id)
   if (container && container.parentNode) {
     container.parentNode.removeChild(container)
@@ -32,7 +41,7 @@ function removeContainer(id: string) {
 export function showNotePopup(mark: Mark, onSave: (note: string) => void) {
   hideNotePopup()
 
-  noteContainer = ensureContainer(NOTE_CONTAINER_ID)
+  noteContainer = createShadowContainer(NOTE_CONTAINER_ID)
 
   noteApp = createApp({
     setup() {
@@ -61,7 +70,7 @@ export function hideNotePopup() {
     noteApp.unmount()
     noteApp = null
   }
-  removeContainer(NOTE_CONTAINER_ID)
+  removeShadowContainer(NOTE_CONTAINER_ID)
   noteContainer = null
 }
 
@@ -71,7 +80,7 @@ export function showScreenshotPreview(mark: Mark) {
   if (!mark.screenshot)
     return
 
-  screenshotContainer = ensureContainer(SCREENSHOT_CONTAINER_ID)
+  screenshotContainer = createShadowContainer(SCREENSHOT_CONTAINER_ID)
 
   screenshotApp = createApp({
     setup() {
@@ -92,6 +101,6 @@ export function hideScreenshotPreview() {
     screenshotApp.unmount()
     screenshotApp = null
   }
-  removeContainer(SCREENSHOT_CONTAINER_ID)
+  removeShadowContainer(SCREENSHOT_CONTAINER_ID)
   screenshotContainer = null
 }
