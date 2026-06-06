@@ -277,11 +277,11 @@ onMessage<GetMarkByIdPayload>('get-mark-by-id', async ({ data }) => {
   return undefined
 })
 
-onMessage('show-screenshot-preview', async ({ data }) => {
+onMessage<any>('show-screenshot-preview', async ({ data }) => {
   try {
     const { mark } = data
     if (!mark?.url) {
-      return { success: false, message: 'Mark URL missing' }
+      return
     }
     const allTabs = await browser.tabs.query({})
     const targetUrl = new URL(mark.url)
@@ -298,14 +298,11 @@ onMessage('show-screenshot-preview', async ({ data }) => {
       }
     })
     if (tab?.id) {
-      await sendMessage('show-screenshot-preview', mark, { context: 'content-script', tabId: tab.id })
-      return { success: true }
+      await sendMessage('show-screenshot-preview', { mark }, { context: 'content-script', tabId: tab.id })
     }
-    return { success: false, message: 'No matching tab found' }
   }
   catch (error) {
     console.error('Failed to forward screenshot preview:', error)
-    return { success: false, message: (error as Error).message }
   }
 })
 

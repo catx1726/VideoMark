@@ -394,8 +394,9 @@ export async function saveVideoMark(): Promise<{ success: boolean, message?: str
         if (note && note.trim()) {
           try {
             await sendMessage('update-mark-details', {
+              url: mark.url,
               id: mark.id,
-              updates: { note: note.trim() },
+              note: note.trim(),
             }, 'background')
             showFeedbackToast('备注已保存')
           }

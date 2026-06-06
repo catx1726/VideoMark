@@ -67,8 +67,7 @@ onMessage('refresh-mark-track', async () => {
   return { success: true }
 })
 
-onMessage('show-screenshot-preview', ({ data }) => {
+onMessage('show-screenshot-preview', ({ data }: any) => {
   console.log('[ContentScript] Received show-screenshot-preview')
   showScreenshotPreview(data.mark)
-  return { success: true }
 })
