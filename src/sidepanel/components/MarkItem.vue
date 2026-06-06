@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { nextTick, ref, watch } from 'vue'
+import { nextTick, ref, toRaw, watch } from 'vue'
+import { sendMessage } from 'webext-bridge/options'
+import browser from 'webextension-polyfill'
 import type { Mark } from '~/logic/storage'
 
 const props = defineProps<{
@@ -49,6 +51,34 @@ function formatDuration(seconds: number): string {
   if (hrs > 0)
     return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`
   return `${pad(mins)}:${pad(secs)}`
+}
+
+async function handleScreenshotClick() {
+  try {
+    const allTabs = await browser.tabs.query({ currentWindow: true })
+    const tab = allTabs.find((t) => {
+      if (!t.url)
+        return false
+      try {
+        const markUrl = new URL(props.mark.url)
+        const tabUrl = new URL(t.url)
+        return markUrl.origin + markUrl.pathname === tabUrl.origin + tabUrl.pathname
+      }
+      catch {
+        return false
+      }
+    })
+
+    if (tab?.id) {
+      await sendMessage('show-screenshot-preview', toRaw(props.mark), { context: 'content-script', tabId: tab.id })
+    }
+    else {
+      previewImage.value = props.mark.screenshot
+    }
+  }
+  catch {
+    previewImage.value = props.mark.screenshot
+  }
 }
 </script>
 
@@ -121,7 +151,7 @@ function formatDuration(seconds: number): string {
             class="h-auto max-h-24 max-w-full object-contain cursor-zoom-in"
             alt="视频截图"
             loading="lazy"
-            @click.stop="previewImage = mark.screenshot"
+            @click.stop="handleScreenshotClick"
           >
         </div>
         <div
