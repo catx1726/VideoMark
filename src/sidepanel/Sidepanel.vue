@@ -84,8 +84,23 @@ const isStorageExpanded = ref(false)
 
 async function removeAllMarksForUrl(url: string) {
   // eslint-disable-next-line no-alert
-  if (confirm(`确定要删除此页面下的所有标记吗？此操作不可撤销。`)) {
+  if (!confirm(`确定要删除此页面下的所有标记吗？此操作不可撤销。`))
+    return
+
+  // 乐观删除：立即在本地标记为删除
+  const now = Date.now()
+  if (marksByUrl.value[url]) {
+    marksByUrl.value[url].forEach((m) => {
+      if (!m.deletedAt)
+        m.deletedAt = now
+    })
+  }
+
+  try {
     await sendMessage('remove-marks-by-url', { url }, 'background')
+  }
+  catch (error) {
+    console.error('Failed to remove marks by url:', error)
   }
   closeMenus()
 }
@@ -94,7 +109,24 @@ async function removeGroupMarks(url: string, group: any) {
   // eslint-disable-next-line no-alert
   if (!confirm(`确定要删除分组「${group.title}」下的所有标记吗？`))
     return
-  await sendMessage('remove-marks', { marks: group.marks.map(toRaw) }, 'background')
+
+  // 乐观删除：立即在本地标记为删除
+  const now = Date.now()
+  const marksToRemove = group.marks as Mark[]
+  if (marksByUrl.value[url]) {
+    marksToRemove.forEach((mToRemove) => {
+      const m = marksByUrl.value[url].find(m => m.id === mToRemove.id)
+      if (m && !m.deletedAt)
+        m.deletedAt = now
+    })
+  }
+
+  try {
+    await sendMessage('remove-marks', { marks: marksToRemove.map(toRaw) }, 'background')
+  }
+  catch (error) {
+    console.error('Failed to remove marks:', error)
+  }
   closeMenus()
 }
 
