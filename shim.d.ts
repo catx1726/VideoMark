@@ -21,6 +21,7 @@ declare module 'webext-bridge' {
     'cleanup-old-marks': ProtocolWithReturn<{ days: number }, { success: boolean, error?: string }>
     'cleanup-useless-marks': ProtocolWithReturn<void, { success: boolean, error?: string }>
     'goto-chapter': ProtocolWithReturn<{ selector: string }>
+    'show-screenshot-preview': { mark: Mark }
     'open-options-page'
   }
 }

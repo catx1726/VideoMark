@@ -2,6 +2,7 @@ import { onMessage } from 'webext-bridge/content-script'
 import { collectError } from '../logic/errorCollector'
 import { gotoVideoTimestamp, saveVideoMark } from './videoMarker'
 import { initMarkTrack, refreshMarkTrack, startVideoDiscovery } from './markTrack'
+import { showScreenshotPreview } from './uiManager'
 import { isPageBlacklisted, settings, settingsReady } from '~/logic/settings'
 import '../styles'
 
@@ -63,5 +64,11 @@ onMessage('goto-video-mark', ({ data }) => {
 onMessage('refresh-mark-track', async () => {
   console.log('[ContentScript] Received refresh-mark-track')
   await refreshMarkTrack().catch(() => {})
+  return { success: true }
+})
+
+onMessage('show-screenshot-preview', ({ data }) => {
+  console.log('[ContentScript] Received show-screenshot-preview')
+  showScreenshotPreview(data.mark)
   return { success: true }
 })
