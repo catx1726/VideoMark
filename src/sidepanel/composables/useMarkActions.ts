@@ -107,9 +107,9 @@ export function useMarkActions() {
     if (tab?.id) {
       await browser.tabs.update(tab.id, { active: true })
       sendMessage('goto-video-mark', {
-        timestamp: mark.timestamp,
-        isLive: mark.isLive,
-      }, { context: 'content-script', tabId: tab.id })
+        timestamp: mark.timestamp ?? 0,
+        isLive: mark.isLive ?? false,
+      } as any, { context: 'content-script', tabId: tab.id })
     }
     else {
       // 使用保存的完整 URL 打开新标签页

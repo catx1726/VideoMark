@@ -1,7 +1,7 @@
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { sendMessage } from 'webext-bridge/options'
 import browser from 'webextension-polyfill'
-import { marksByUrl, tagsMetadata } from '~/logic/storage'
+import { marksByUrl, tagsMetadata, type Mark } from '~/logic/storage'
 import { type TagTree, buildTagTree } from '~/logic/tagTree'
 
 export function useSidepanelData() {
@@ -10,7 +10,7 @@ export function useSidepanelData() {
   let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
   async function refreshAllMarks() {
-    const allMarks = await sendMessage('get-all-marks', {}, 'background')
+    const allMarks = await sendMessage('get-all-marks', {}, 'background') as Record<string, Mark[]> | null
     if (allMarks)
       marksByUrl.value = allMarks
   }

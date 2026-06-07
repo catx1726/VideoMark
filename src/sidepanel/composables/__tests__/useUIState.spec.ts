@@ -12,7 +12,8 @@ describe('useUIState', () => {
       activeUrlMenu,
       activeFolderMenu,
       activeGroupMenu,
-      tagPickerVisible,
+      editingMarkId,
+      timelineViewUrls,
     } = useUIState()
 
     expect(collapsedStates.value).toEqual({})
@@ -23,7 +24,8 @@ describe('useUIState', () => {
     expect(activeUrlMenu.value).toBeNull()
     expect(activeFolderMenu.value).toBeNull()
     expect(activeGroupMenu.value).toBeNull()
-    expect(tagPickerVisible.value).toBe(false)
+    expect(editingMarkId.value).toBeNull()
+    expect(timelineViewUrls.value instanceof Set).toBe(true)
   })
 
   it('should toggle url collapse', () => {

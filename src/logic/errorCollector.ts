@@ -18,8 +18,10 @@ export const MAX_LOGS = 50
  * @param error 可以是 Error 对象、ErrorEvent、PromiseRejectionEvent 或任何其它错误信息。
  * @param type 错误发生的上下文（content script 或 background）。
  */
+import browser from 'webextension-polyfill'
+
 export async function collectError(error: any, type: 'content' | 'background') {
-  const extensionOrigin = chrome.runtime.getURL('')
+  const extensionOrigin = browser.runtime.getURL('')
 
   let message = ''
   let stack = ''
@@ -81,10 +83,10 @@ export async function collectError(error: any, type: 'content' | 'background') {
 
   if (logs.length > MAX_LOGS)
     logs.pop()
-  await chrome.storage.local.set({ [STORAGE_KEY]: logs })
+  await browser.storage.local.set({ [STORAGE_KEY]: logs })
 }
 
 export async function getLogs(): Promise<ErrorLog[]> {
-  const result = await chrome.storage.local.get(STORAGE_KEY)
-  return result[STORAGE_KEY] || []
+  const result = await browser.storage.local.get(STORAGE_KEY)
+  return (result as any)[STORAGE_KEY] || []
 }

@@ -137,7 +137,8 @@ class ConsensusAnchorManager {
     const anchors = this.extractAnchors()
     const startVotes: { val: number, weight: number }[] = []
     const endVotes: { val: number, weight: number }[] = []
-    const markEndInSnippet = this.markStartInSnippet + this.markText.length
+    const _markEndInSnippet = this.markStartInSnippet + this.markText.length
+    void _markEndInSnippet // used in extractAnchors method
 
     for (const anchor of anchors) {
       const matches = this.findBestMatches(anchor.text, fullText)

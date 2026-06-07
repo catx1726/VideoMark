@@ -52,7 +52,8 @@ onMessage('mark-video-timestamp', async () => {
 })
 
 onMessage('goto-video-mark', ({ data }) => {
-  const { timestamp, isLive } = data
+  const markData = data as { timestamp: number, isLive: boolean }
+  const { timestamp, isLive } = markData
   if (isLive) {
     console.log('[ContentScript] Live stream mark cannot jump to timestamp')
     return { success: false, message: '直播内容无法跳转回历史时间点' }
@@ -67,7 +68,7 @@ onMessage('refresh-mark-track', async () => {
   return { success: true }
 })
 
-onMessage('show-screenshot-preview', ({ data }: any) => {
+onMessage<{ mark: any }>('show-screenshot-preview', ({ data }) => {
   console.log('[ContentScript] Received show-screenshot-preview')
   try {
     showScreenshotPreview(data.mark)

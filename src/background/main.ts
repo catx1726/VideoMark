@@ -1,6 +1,6 @@
 // 移除 watch, CLEANUP_DAYS_THRESHOLD
 import { onMessage, sendMessage } from 'webext-bridge/background'
-import type { Tabs } from 'webextension-polyfill'
+// import type { Tabs } from 'webextension-polyfill'
 // src/background/main.ts
 import { toRaw } from 'vue'
 import { debounce } from 'lodash-es'
@@ -9,6 +9,7 @@ import {
   type GetMarkByIdPayload,
   type Mark,
   type RemoveMarkPayload,
+  type SyncConfig,
   type UpdateMarkNotePayload,
   dataReady,
   marksByUrl,
@@ -44,6 +45,25 @@ if (USE_SIDE_PANEL && globalThis.browser?.sidePanel) {
 browser.runtime.onInstalled.addListener((): void => {
   // eslint-disable-next-line no-console
   console.log('Extension installed')
+})
+
+// ── Keyboard shortcut handler ──
+browser.commands.onCommand.addListener(async (command) => {
+  if (command === 'mark-video-timestamp') {
+    try {
+      const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+      if (tab?.id) {
+        // eslint-disable-next-line no-console
+        console.log('[Background] Forwarding mark-video-timestamp to tab:', tab.id)
+        const result = await sendMessage('mark-video-timestamp', {}, { context: 'content-script', tabId: tab.id })
+        // eslint-disable-next-line no-console
+        console.log('[Background] Mark result:', result)
+      }
+    }
+    catch (error) {
+      console.error('[Background] Failed to forward mark-video-timestamp:', error)
+    }
+  }
 })
 async function ensureReady(timeoutMs = 5000) {
   const timeoutPromise = new Promise<never>((_, reject) =>
@@ -105,28 +125,7 @@ async function notifyTabToRefreshTrack(url: string) {
   }
 }
 
-// communication example: send previous tab title from background page
-// see shim.d.ts for type declaration
-browser.tabs.onActivated.addListener(async ({ tabId }) => {
-  if (!previousTabId) {
-    previousTabId = tabId
-    return
-  }
 
-  let tab: Tabs.Tab
-
-  try {
-    tab = await browser.tabs.get(previousTabId)
-    previousTabId = tabId
-  }
-  catch {
-    return
-  }
-
-  // eslint-disable-next-line no-console
-  console.log('previous tab', tab)
-  sendMessage('tab-prev', { title: tab.title }, { context: 'content-script', tabId })
-})
 
 onMessage('get-current-tab', async () => {
   try {
@@ -480,8 +479,9 @@ onMessage('trigger-sync', async () => {
   await performPull()
 })
 
-onMessage('report-error', async ({ data, context: _context }) => {
-  const { message, stack, type = 'background' } = data
+onMessage('report-error', async ({ data }) => {
+  const errorData = data as { message: string, stack?: string, type?: 'content' | 'background' }
+  const { message, stack, type = 'background' } = errorData
   await collectError({ message, stack }, type)
 })
 

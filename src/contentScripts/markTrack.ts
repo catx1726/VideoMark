@@ -11,7 +11,7 @@ import { URLNormalizer, getMaxZIndex } from '~/logic/dom'
 
 const TRACK_ID = 'videomark-track'
 const TRACK_HEIGHT = 4
-const ANCHOR_WIDTH = 3
+const ANCHOR_WIDTH = 10
 const ANCHOR_HEIGHT = 10
 
 let currentTrack: HTMLElement | null = null

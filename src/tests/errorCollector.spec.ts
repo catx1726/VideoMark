@@ -4,8 +4,8 @@ import { STORAGE_KEY, collectError } from '../logic/errorCollector'
 describe('errorCollector filtering', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // 模拟 chrome API
-    global.chrome = {
+    // 模拟 browser API
+    vi.stubGlobal('browser', {
       runtime: {
         getURL: vi.fn().mockReturnValue('chrome-extension://test-id/'),
       },
@@ -15,7 +15,7 @@ describe('errorCollector filtering', () => {
           set: vi.fn().mockResolvedValue(undefined),
         },
       },
-    } as any
+    })
   })
 
   it('应该捕获来自插件的错误 (匹配 stack)', async () => {
@@ -24,8 +24,8 @@ describe('errorCollector filtering', () => {
 
     await collectError(error, 'content')
 
-    expect(chrome.storage.local.set).toHaveBeenCalled()
-    const callArgs = (chrome.storage.local.set as any).mock.calls[0][0]
+    expect(browser.storage.local.set).toHaveBeenCalled()
+    const callArgs = (browser.storage.local.set as any).mock.calls[0][0]
     expect(callArgs[STORAGE_KEY][0].message).toBe('Plugin Error')
   })
 
@@ -35,7 +35,7 @@ describe('errorCollector filtering', () => {
 
     await collectError(error, 'content')
 
-    expect(chrome.storage.local.set).not.toHaveBeenCalled()
+    expect(browser.storage.local.set).not.toHaveBeenCalled()
   })
 
   it('应该根据 filename 捕获错误', async () => {
@@ -46,7 +46,7 @@ describe('errorCollector filtering', () => {
 
     await collectError(error, 'content')
 
-    expect(chrome.storage.local.set).toHaveBeenCalled()
+    expect(browser.storage.local.set).toHaveBeenCalled()
   })
 
   it('应该支持 ErrorEvent 对象', async () => {
@@ -63,8 +63,8 @@ describe('errorCollector filtering', () => {
 
     await collectError(event, 'content')
 
-    expect(chrome.storage.local.set).toHaveBeenCalled()
-    const callArgs = (chrome.storage.local.set as any).mock.calls[0][0]
+    expect(browser.storage.local.set).toHaveBeenCalled()
+    const callArgs = (browser.storage.local.set as any).mock.calls[0][0]
     expect(callArgs[STORAGE_KEY][0].message).toBe('Event Error')
   })
 })

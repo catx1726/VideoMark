@@ -49,7 +49,7 @@ export function useStorageMonitor() {
             m.deletedAt = Date.now()
         })
       })
-      await sendMessage('cleanup-useless-marks', {}, 'background')
+      await sendMessage('cleanup-useless-marks', undefined, 'background')
       await refreshUsage()
       return true
     }

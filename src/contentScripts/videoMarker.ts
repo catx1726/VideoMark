@@ -6,37 +6,179 @@ import type { Mark } from '~/logic/storage'
 
 export interface VideoInfo {
   currentTime: number
-  duration: number
+  duration: number | undefined
   src: string
   isLive: boolean
   platform: string
 }
 
+// 缓存上次找到的视频和 iframe 映射，避免每次都重新遍历
+let cachedVideo: HTMLVideoElement | null = null
+let cachedVideoTime = 0
+const VIDEO_CACHE_TTL = 2000 // 2秒内复用缓存
+
 /**
  * 查找页面中最可能的主视频元素
  * 策略：可见的、尺寸最大的、正在播放的 video 元素优先
+ * 支持 iframe 穿透和 Shadow DOM
  */
 export function findActiveVideo(): HTMLVideoElement | null {
-  const allVideos = querySelectorAllDeep('video') as NodeListOf<HTMLVideoElement>
+  // 如果缓存的视频还在有效期内且仍然有效，直接返回
+  if (cachedVideo && Date.now() - cachedVideoTime < VIDEO_CACHE_TTL) {
+    const rect = cachedVideo.getBoundingClientRect()
+    if (rect.width >= 50 && rect.height >= 50) {
+      return cachedVideo
+    }
+  }
+
+  const isDebug = location.hostname.includes('douyin.com') || location.hostname.includes('iesdouyin.com')
+  if (isDebug) {
+    console.log('[VideoMarker] Searching for video elements...')
+  }
+
+  // 1. 当前页面搜索（含 Shadow DOM）
+  const allVideos = querySelectorAllDeep('video') as unknown as HTMLVideoElement[]
+  if (isDebug) {
+    console.log(`[VideoMarker] Found ${allVideos.length} video elements in main document (with Shadow DOM)`)
+    allVideos.forEach((v, i) => {
+      const rect = v.getBoundingClientRect()
+      console.log(`[VideoMarker] Video ${i}: ${rect.width}x${rect.height}, paused=${v.paused}, currentTime=${v.currentTime}, src=${v.currentSrc?.substring(0, 50)}`)
+    })
+  }
+
+  // 2. 同时搜索所有 iframe 中的视频
+  const iframes = document.querySelectorAll('iframe')
+  if (isDebug) {
+    console.log(`[VideoMarker] Found ${iframes.length} iframes`)
+  }
+
+  for (const iframe of Array.from(iframes)) {
+    try {
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
+      if (iframeDoc) {
+        const iframeVideos = iframeDoc.querySelectorAll('video')
+        if (isDebug && iframeVideos.length > 0) {
+          console.log(`[VideoMarker] Found ${iframeVideos.length} videos in iframe`)
+        }
+        iframeVideos.forEach(v => allVideos.push(v as HTMLVideoElement))
+      }
+    }
+    catch (e) {
+      // 跨域 iframe 无法访问，忽略
+      if (isDebug) {
+        console.log('[VideoMarker] Cross-origin iframe skipped')
+      }
+    }
+  }
+
   const candidates: HTMLVideoElement[] = []
 
   for (const video of Array.from(allVideos)) {
     const rect = video.getBoundingClientRect()
     const style = window.getComputedStyle(video)
 
-    // 过滤不可见的
-    if (rect.width < 100 || rect.height < 100)
+    // 抖音等 SPA 平台：视频加载过程中 rect.height 可能为 0，但 videoHeight 已有值
+    const hasValidRect = rect.width >= 50 && rect.height >= 50
+    const hasValidVideoSize = video.videoWidth >= 50 && video.videoHeight >= 50
+    const isActuallyVisible = style.display !== 'none' && style.visibility !== 'hidden'
+
+    if (!hasValidRect && !hasValidVideoSize) {
+      if (isDebug) {
+        console.log(`[VideoMarker] Video rejected: too small (rect=${rect.width}x${rect.height}, video=${video.videoWidth}x${video.videoHeight})`)
+      }
       continue
-    if (style.display === 'none' || style.visibility === 'hidden')
+    }
+    if (!isActuallyVisible) {
+      if (isDebug) {
+        console.log(`[VideoMarker] Video rejected: hidden (display=${style.display}, visibility=${style.visibility})`)
+      }
       continue
+    }
 
     candidates.push(video)
   }
 
-  if (candidates.length === 0)
+  if (isDebug) {
+    console.log(`[VideoMarker] Total candidates after filtering: ${candidates.length}`)
+  }
+
+  if (candidates.length === 0) {
+    // 平台特殊处理：尝试通过已知选择器查找
+    const hostname = location.hostname
+    if (hostname.includes('bilibili.com')) {
+      const bilibiliSelectors = [
+        '.live-player video',
+        '#live-player video',
+        '.player-video video',
+        '[class*="player"] video',
+        'video[src*="live"]',
+      ]
+      for (const selector of bilibiliSelectors) {
+        const video = document.querySelector(selector) as HTMLVideoElement
+        if (video) {
+          cachedVideo = video
+          cachedVideoTime = Date.now()
+          return video
+        }
+      }
+    }
+    
+    // 抖音特殊处理
+    if (hostname.includes('douyin.com') || hostname.includes('iesdouyin.com')) {
+      if (isDebug) {
+        console.log('[VideoMarker] Trying douyin-specific selectors...')
+      }
+      const douyinSelectors = [
+        'video',
+        'xg-video video',
+        '.xgplayer video',
+        '[class*="player"] video',
+        'video[playsinline]',
+        'video[webkit-playsinline]',
+      ]
+      for (const selector of douyinSelectors) {
+        try {
+          const video = document.querySelector(selector) as HTMLVideoElement
+          if (video) {
+            const rect = video.getBoundingClientRect()
+            if (isDebug) {
+              console.log(`[VideoMarker] Found video via selector "${selector}": ${rect.width}x${rect.height}`)
+            }
+            if (rect.width >= 50 && rect.height >= 50) {
+              cachedVideo = video
+              cachedVideoTime = Date.now()
+              return video
+            }
+          }
+        }
+        catch (e) {
+          // 忽略选择器错误
+        }
+      }
+      
+      // 如果还是没找到，尝试更激进的策略：找任何 video 元素，不管可见性
+      if (isDebug) {
+        console.log('[VideoMarker] Trying aggressive search...')
+      }
+      const allVideosAggressive = document.querySelectorAll('video')
+      if (allVideosAggressive.length > 0) {
+        const video = allVideosAggressive[0]
+        if (isDebug) {
+          console.log(`[VideoMarker] Using first video element found: ${video.videoWidth}x${video.videoHeight}`)
+        }
+        cachedVideo = video
+        cachedVideoTime = Date.now()
+        return video
+      }
+    }
     return null
-  if (candidates.length === 1)
+  }
+
+  if (candidates.length === 1) {
+    cachedVideo = candidates[0]
+    cachedVideoTime = Date.now()
     return candidates[0]
+  }
 
   // 多视频时按优先级排序
   candidates.sort((a, b) => {
@@ -64,6 +206,8 @@ export function findActiveVideo(): HTMLVideoElement | null {
     return 0
   })
 
+  cachedVideo = candidates[0]
+  cachedVideoTime = Date.now()
   return candidates[0]
 }
 
@@ -315,9 +459,17 @@ export async function createVideoMark(video: HTMLVideoElement): Promise<Mark> {
 
 /**
  * 等待视频加载 metadata 且 duration 有效（带超时）
+ * 直播流（duration === Infinity）直接通过，不需要等待
  */
 function waitForVideoMetadata(video: HTMLVideoElement, timeoutMs = 5000): Promise<void> {
   return new Promise((resolve) => {
+    // 直播流直接通过
+    if (video.duration === Infinity) {
+      resolve()
+      return
+    }
+
+    // 点播视频需要等待有效的 duration
     if (video.readyState >= HTMLMediaElement.HAVE_METADATA
       && Number.isFinite(video.duration)
       && video.duration > 0) {
@@ -335,6 +487,13 @@ function waitForVideoMetadata(video: HTMLVideoElement, timeoutMs = 5000): Promis
     }
 
     function onReady() {
+      // 直播流直接通过
+      if (video.duration === Infinity) {
+        cleanup()
+        resolve()
+        return
+      }
+
       if (video.readyState >= HTMLMediaElement.HAVE_METADATA
         && Number.isFinite(video.duration)
         && video.duration > 0) {
@@ -359,21 +518,32 @@ function waitForVideoMetadata(video: HTMLVideoElement, timeoutMs = 5000): Promis
   })
 }
 
+// 防抖：防止短时间内重复标记
+let isMarking = false
+
 /**
  * 保存视频标记
  * 查找主视频 → 等待加载 → 创建标记 → 发送给 background
  */
 export async function saveVideoMark(): Promise<{ success: boolean, message?: string }> {
-  const video = findActiveVideo()
-  if (!video) {
-    console.warn('[VideoMarker] No active video found on page')
-    return { success: false, message: '页面上未检测到视频' }
+  // 防抖检查
+  if (isMarking) {
+    console.log('[VideoMarker] Already processing a mark, skipping')
+    return { success: false, message: '正在处理上一个标记...' }
   }
 
-  // 如果视频还没加载完，等一下（避免 NaN duration 导致误判直播）
-  await waitForVideoMetadata(video, 3000)
+  isMarking = true
 
   try {
+    const video = findActiveVideo()
+    if (!video) {
+      console.warn('[VideoMarker] No active video found on page')
+      return { success: false, message: '页面上未检测到视频' }
+    }
+
+    // 如果视频还没加载完，等一下（避免 NaN duration 导致误判直播）
+    await waitForVideoMetadata(video, 1000)
+
     const mark = await createVideoMark(video)
     const result = await sendMessage('add-mark', mark, 'background')
 
@@ -413,6 +583,12 @@ export async function saveVideoMark(): Promise<{ success: boolean, message?: str
   catch (error) {
     console.error('[VideoMarker] Error saving video mark:', error)
     return { success: false, message: (error as Error).message }
+  }
+  finally {
+    // 500ms 后重置防抖标志，防止按键抖动导致多次触发
+    setTimeout(() => {
+      isMarking = false
+    }, 500)
   }
 }
 
