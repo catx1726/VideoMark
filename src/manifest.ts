@@ -101,11 +101,8 @@ export async function getManifest() {
   if (isFirefox) {
     manifest.sidebar_action = {
       default_panel: 'dist/sidepanel/index.html',
-      default_icon: {
-        16: 'assets/icon-16.png',
-        32: 'assets/icon-48.png',
-        48: 'assets/icon-48.png',
-      },
+      default_icon: 'assets/icon-16.png',
+      default_title: manifest.name,
     }
   }
   else {

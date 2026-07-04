@@ -1,6 +1,6 @@
 // 移除 watch, CLEANUP_DAYS_THRESHOLD
 import { onMessage, sendMessage } from 'webext-bridge/background'
-// import type { Tabs } from 'webextension-polyfill'
+import type { Tabs } from 'webextension-polyfill'
 // src/background/main.ts
 import { toRaw } from 'vue'
 import { debounce } from 'lodash-es'
@@ -9,7 +9,6 @@ import {
   type GetMarkByIdPayload,
   type Mark,
   type RemoveMarkPayload,
-  type SyncConfig,
   type UpdateMarkNotePayload,
   dataReady,
   marksByUrl,
@@ -20,7 +19,13 @@ import {
   tagsMetadata,
   tagsReady,
 } from '~/logic/storage'
-import { getGists, mergeMarks, mergeTags, updateGist } from '~/logic/sync'
+import { canPush, getGistById, mergeWithRemoteFile, updateGist } from '~/logic/sync'
+
+interface TriggerSyncPayload {
+  force?: boolean
+  token?: string
+  gistId?: string
+}
 
 // only on dev mode
 if (import.meta.hot) {
@@ -29,8 +34,10 @@ if (import.meta.hot) {
   // load latest content script
   import('./contentScriptHMR')
 }
-window.addEventListener('error', event => collectError(event.error, 'background'))
-window.addEventListener('unhandledrejection', event => collectError(event.reason, 'background'))
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', event => collectError(event.error, 'background'))
+  window.addEventListener('unhandledrejection', event => collectError(event.reason, 'background'))
+}
 
 // remove or turn this off if you don't use side panel
 const USE_SIDE_PANEL = true
@@ -45,25 +52,6 @@ if (USE_SIDE_PANEL && globalThis.browser?.sidePanel) {
 browser.runtime.onInstalled.addListener((): void => {
   // eslint-disable-next-line no-console
   console.log('Extension installed')
-})
-
-// ── Keyboard shortcut handler ──
-browser.commands.onCommand.addListener(async (command) => {
-  if (command === 'mark-video-timestamp') {
-    try {
-      const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
-      if (tab?.id) {
-        // eslint-disable-next-line no-console
-        console.log('[Background] Forwarding mark-video-timestamp to tab:', tab.id)
-        const result = await sendMessage('mark-video-timestamp', {}, { context: 'content-script', tabId: tab.id })
-        // eslint-disable-next-line no-console
-        console.log('[Background] Mark result:', result)
-      }
-    }
-    catch (error) {
-      console.error('[Background] Failed to forward mark-video-timestamp:', error)
-    }
-  }
 })
 async function ensureReady(timeoutMs = 5000) {
   const timeoutPromise = new Promise<never>((_, reject) =>
@@ -97,35 +85,28 @@ function enqueueWrite<T>(writeFn: () => Promise<T>): Promise<T> {
   return result
 }
 
-/**
- * 通知对应 URL 的标签页刷新标记轨道
- */
-async function notifyTabToRefreshTrack(url: string) {
+// communication example: send previous tab title from background page
+// see shim.d.ts for type declaration
+browser.tabs.onActivated.addListener(async ({ tabId }) => {
+  if (!previousTabId) {
+    previousTabId = tabId
+    return
+  }
+
+  let tab: Tabs.Tab
+
   try {
-    const allTabs = await browser.tabs.query({})
-    const targetUrl = new URL(url)
-    const targetBase = targetUrl.origin + targetUrl.pathname
-    const tab = allTabs.find((t) => {
-      if (!t.url)
-        return false
-      try {
-        const tabUrl = new URL(t.url)
-        return tabUrl.origin + tabUrl.pathname === targetBase
-      }
-      catch {
-        return false
-      }
-    })
-    if (tab?.id) {
-      sendMessage('refresh-mark-track', {}, { context: 'content-script', tabId: tab.id }).catch(() => {})
-    }
+    tab = await browser.tabs.get(previousTabId)
+    previousTabId = tabId
   }
   catch {
-    // 忽略错误
+    return
   }
-}
 
-
+  // eslint-disable-next-line no-console
+  console.log('previous tab', tab)
+  sendMessage('tab-prev', { title: tab.title }, { context: 'content-script', tabId })
+})
 
 onMessage('get-current-tab', async () => {
   try {
@@ -176,8 +157,6 @@ onMessage('remove-mark', async ({ data: markToRemove }) => {
     })
     if (!syncConfig.value.enabled)
       await purgeTombstones()
-    // 通知对应标签页的 content script 刷新轨道
-    await notifyTabToRefreshTrack(url)
     return { success: true }
   }
   catch (error) {
@@ -255,8 +234,6 @@ onMessage<any>('update-mark-details', async ({ data }) => {
         }
       }
     })
-    // 通知对应标签页的 content script 刷新轨道（备注变更可能影响 tooltip）
-    await notifyTabToRefreshTrack(url)
     return { success: true }
   }
   catch (error) {
@@ -410,8 +387,6 @@ onMessage<{ url: string }>('remove-marks-by-url', async ({ data }) => {
     // 如果未开启同步，立即物理清理以避免残留；否则由同步流程负责清理
     if (!syncConfig.value.enabled)
       await purgeTombstones()
-    // 通知对应标签页刷新标记轨道
-    await notifyTabToRefreshTrack(url)
     return { success: true }
   }
   catch (error) {
@@ -424,7 +399,6 @@ onMessage<{ marks: any[] }>('remove-marks', async ({ data }) => {
   await ensureReady()
   try {
     const { marks } = data
-    const urlsToRefresh = new Set<string>()
     await enqueueWrite(async () => {
       const now = Date.now()
       for (const mToRemove of marks) {
@@ -433,7 +407,6 @@ onMessage<{ marks: any[] }>('remove-marks', async ({ data }) => {
           const mark = marksByUrl.value[url].find(m => m.id === id)
           if (mark) {
             mark.deletedAt = now
-            urlsToRefresh.add(url)
           }
         }
       }
@@ -441,10 +414,6 @@ onMessage<{ marks: any[] }>('remove-marks', async ({ data }) => {
     })
     if (!syncConfig.value.enabled)
       await purgeTombstones()
-    // 通知对应标签页刷新标记轨道
-    for (const url of urlsToRefresh) {
-      await notifyTabToRefreshTrack(url)
-    }
     return { success: true }
   }
   catch (error) {
@@ -475,9 +444,50 @@ onMessage('open-options-page', async () => {
   browser.runtime.openOptionsPage()
 })
 
-onMessage('trigger-sync', async () => {
-  await performPull()
+onMessage('trigger-sync', async ({ data }) => {
+  // eslint-disable-next-line no-console
+  console.log('[Sync] webext-bridge trigger-sync received', data)
+  const payload = data as TriggerSyncPayload
+  const force = payload?.force ?? false
+  const token = payload?.token || syncConfig.value.token
+  const gistId = payload?.gistId || syncConfig.value.gistId
+  try {
+    const success = await performPull(3, { force, token, gistId })
+    // eslint-disable-next-line no-console
+    console.log('[Sync] webext-bridge trigger-sync completed', { success })
+    return { success }
+  }
+  catch (error: any) {
+    console.error('[Sync] trigger-sync failed:', error)
+    return { success: false, error: error.message }
+  }
 })
+
+function handleRuntimeMessage(message: any, _sender: any, sendResponse: (response?: any) => void) {
+  // eslint-disable-next-line no-console
+  console.log('[Sync] runtime.onMessage received', message)
+  if (message?.type === 'trigger-sync-pull') {
+    const payload = message as TriggerSyncPayload
+    const force = payload?.force ?? false
+    const token = payload?.token || syncConfig.value.token
+    const gistId = payload?.gistId || syncConfig.value.gistId
+    performPull(3, { force, token, gistId })
+      .then((success) => {
+        // eslint-disable-next-line no-console
+        console.log('[Sync] runtime trigger-sync-pull completed', { success })
+        sendResponse({ success })
+      })
+      .catch((error: any) => {
+        console.error('[Sync] trigger-sync-pull failed:', error)
+        sendResponse({ success: false, error: error.message })
+      })
+    return true
+  }
+  return undefined
+}
+
+// @ts-expect-error webextension-polyfill type expects literal true return; runtime messaging actually allows boolean | undefined
+browser.runtime.onMessage.addListener(handleRuntimeMessage)
 
 onMessage('report-error', async ({ data }) => {
   const errorData = data as { message: string, stack?: string, type?: 'content' | 'background' }
@@ -535,6 +545,12 @@ let isSyncing = false
  */
 let syncQueue: Promise<void> = Promise.resolve()
 
+/**
+ * 错误恢复冷却时间戳，防止 error 状态下连续触发 pull-then-push 循环。
+ */
+let lastErrorRecoveryAt = 0
+const ERROR_RECOVERY_COOLDOWN_MS = 60_000
+
 async function enqueueSync(task: () => Promise<void>) {
   const nextSync = syncQueue.then(task).catch((err) => {
     console.error('[Sync] Queue task failed:', err)
@@ -584,12 +600,25 @@ async function purgeTombstones() {
 }
 
 const performPush = debounce(async () => {
-  if (isSyncing || !syncConfig.value.enabled || !syncConfig.value.token || !syncConfig.value.gistId)
+  if (isSyncing || !canPush(syncConfig.value, syncStatus.value))
     return
 
   await enqueueSync(async () => {
     isSyncing = true
     try {
+      // 如果上次同步失败，先拉取远程数据合并后再推送，避免覆盖远程较新的数据。
+      // 增加冷却期，防止连续失败时反复进入错误恢复循环。
+      if (syncStatus.value.lastSyncStatus === 'error') {
+        if (Date.now() - lastErrorRecoveryAt < ERROR_RECOVERY_COOLDOWN_MS) {
+          console.warn('[Sync] Error recovery cooldown active, skipping push')
+          return
+        }
+        lastErrorRecoveryAt = Date.now()
+        const pullSuccess = await performPullInternal(3, { force: false })
+        if (!pullSuccess)
+          return
+      }
+
       // eslint-disable-next-line no-console
       console.log('[Sync] Starting background push...')
       const payload = {
@@ -654,93 +683,137 @@ const performPush = debounce(async () => {
   })
 }, 10000)
 
-async function performPull(retries = 3) {
+/**
+ * 执行拉取的核心逻辑（不 enqueueSync，供 performPull / performPush 错误恢复在队列内调用）。
+ */
+async function performPullInternal(retries = 3, { force = false, token = '', gistId = '' } = {}): Promise<boolean> {
+  const pullToken = token || syncConfig.value.token
+  const pullGistId = gistId || syncConfig.value.gistId
+  // eslint-disable-next-line no-console
+  console.log('[Sync] performPullInternal called', { retries, force, isSyncing, hasToken: !!pullToken, hasGistId: !!pullGistId, enabled: syncConfig.value.enabled })
+  const hasRequired = pullToken && pullGistId
+  if (!hasRequired)
+    return false
+  if (!force && !syncConfig.value.enabled)
+    return false
+
+  for (let i = 0; i < retries; i++) {
+    try {
+      // eslint-disable-next-line no-console
+      console.log(`[Sync] Starting initial pull (attempt ${i + 1})...`)
+      // 列表接口不包含文件内容，必须单独获取 Gist 详情才能读取 content
+      const gist = await getGistById(pullToken, pullGistId)
+      const file = gist.files?.['videomark_sync.json']
+
+      if (!file) {
+        console.error('[Sync] videomark_sync.json not found in Gist:', pullGistId)
+        throw new Error('同步 Gist 中未找到 videomark_sync.json 文件')
+      }
+
+      if (!file.content) {
+        console.warn('[Sync] Remote videomark_sync.json is empty, treating as no remote data')
+        return await enqueueWrite(async () => {
+          syncStatus.value.lastSyncTime = Date.now()
+          syncStatus.value.lastSyncStatus = 'success'
+          syncStatus.value.errorMessage = '云端同步文件为空，本地数据将在下次变更时上传。'
+          return true
+        })
+      }
+
+      // eslint-disable-next-line no-console
+      console.log('[Sync] Initial pull and merge successful')
+      return await enqueueWrite(async () => {
+        const result = mergeWithRemoteFile(toRaw(marksByUrl.value), toRaw(tagsMetadata.value), file.content)
+
+        // eslint-disable-next-line no-console
+        console.log('[Sync] Pull data', {
+          localMarkCount: Object.keys(result.marks).length,
+          remoteMarkCount: Object.keys(result.marks).length,
+          localTagCount: Object.keys(result.tags).length,
+          remoteTagCount: Object.keys(result.tags).length,
+        })
+
+        marksByUrl.value = result.marks
+        tagsMetadata.value = result.tags
+        syncStatus.value.lastSyncTime = Date.now()
+        syncStatus.value.lastSyncStatus = 'success'
+        syncStatus.value.errorMessage = ''
+
+        await purgeTombstones()
+        browser.runtime.sendMessage({ type: 'refresh-sidepanel-data' }).catch(() => {})
+        return true
+      })
+    }
+    catch (error: any) {
+      if (error.message.includes('身份验证失败')) {
+        await enqueueWrite(async () => {
+          syncConfig.value.enabled = false
+          syncStatus.value.lastSyncStatus = 'error'
+          syncStatus.value.errorMessage = error.message
+        })
+        return false // 认证失败无需重试
+      }
+
+      if (i === retries - 1) {
+        console.error('[Sync] Initial pull failed after retries:', error)
+        await enqueueWrite(async () => {
+          syncStatus.value.lastSyncStatus = 'error'
+          syncStatus.value.errorMessage = error.message
+        })
+        return false
+      }
+      else {
+        const delay = 2 ** i * 1000
+
+        console.warn(`[Sync] Pull failed, retrying in ${delay}ms...`, error)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
+    }
+  }
+  return false
+}
+
+async function performPull(retries = 3, { force = false, token = '', gistId = '' } = {}): Promise<boolean> {
   if (isSyncing)
-    return
+    return false
   await ensureReady()
-  if (!syncConfig.value.enabled || !syncConfig.value.token || !syncConfig.value.gistId)
-    return
+  const pullToken = token || syncConfig.value.token
+  const pullGistId = gistId || syncConfig.value.gistId
+  const hasRequired = pullToken && pullGistId
+  if (!hasRequired)
+    return false
+  if (!force && !syncConfig.value.enabled)
+    return false
 
   await enqueueSync(async () => {
     isSyncing = true
     try {
-      for (let i = 0; i < retries; i++) {
-        try {
-          // eslint-disable-next-line no-console
-          console.log(`[Sync] Starting initial pull (attempt ${i + 1})...`)
-          const gists = await getGists(syncConfig.value.token)
-          const gist = gists.find(g => g.id === syncConfig.value.gistId)
-          const file = gist?.files['videomark_sync.json']
-
-          if (file && file.content) {
-            const remoteData = JSON.parse(file.content)
-
-            await enqueueWrite(async () => {
-              marksByUrl.value = mergeMarks(toRaw(marksByUrl.value), remoteData.marks || {})
-              tagsMetadata.value = mergeTags(toRaw(tagsMetadata.value), remoteData.tags || {})
-              syncStatus.value.lastSyncTime = Date.now()
-              syncStatus.value.lastSyncStatus = 'success'
-              syncStatus.value.errorMessage = ''
-
-              await purgeTombstones()
-              browser.runtime.sendMessage({ type: 'refresh-sidepanel-data' }).catch(() => {})
-            })
-
-            // eslint-disable-next-line no-console
-            console.log('[Sync] Initial pull and merge successful')
-          }
-          return // 成功则退出
-        }
-        catch (error: any) {
-          if (error.message.includes('身份验证失败')) {
-            await enqueueWrite(async () => {
-              syncConfig.value.enabled = false
-              syncStatus.value.lastSyncStatus = 'error'
-              syncStatus.value.errorMessage = error.message
-            })
-            return // 认证失败无需重试
-          }
-
-          if (i === retries - 1) {
-            console.error('[Sync] Initial pull failed after retries:', error)
-            await enqueueWrite(async () => {
-              syncStatus.value.lastSyncStatus = 'error'
-              syncStatus.value.errorMessage = error.message
-            })
-          }
-          else {
-            const delay = 2 ** i * 1000
-
-            console.warn(`[Sync] Pull failed, retrying in ${delay}ms...`, error)
-            await new Promise(resolve => setTimeout(resolve, delay))
-          }
-        }
-      }
+      await performPullInternal(retries, { force, token, gistId })
     }
     finally {
       isSyncing = false
     }
   })
+  return true
 }
 // 监听存储变化触发推送
 browser.storage.onChanged.addListener((changes) => {
   if (changes['marks-by-url-storage'] || changes['webmarker-tags-metadata']) {
     performPush()
   }
-
-  // 监听同步配置变更，仅处理启用状态切换。
-  // 初次连接时的拉取由 Options 页面主动触发，避免竞态。
-  if (changes['webmarker-sync-config']) {
-    const newValue = changes['webmarker-sync-config'].newValue as SyncConfig
-    const oldValue = changes['webmarker-sync-config'].oldValue as SyncConfig
-    if (newValue?.enabled && !oldValue?.enabled && newValue?.gistId) {
-      performPull()
-    }
-  }
 })
 
-// 启动时拉取
-performPull()
+browser.runtime.onStartup.addListener(() => {
+  // eslint-disable-next-line no-console
+  console.log('[Sync] Browser started, waiting for storage ready then pulling if enabled')
+  Promise.all([dataReady, tagsReady, syncReady]).then(() => {
+    if (syncConfig.value.enabled && syncConfig.value.gistId) {
+      // eslint-disable-next-line no-console
+      console.log('[Sync] Startup pull triggered')
+      performPull()
+    }
+  })
+})
 
 onMessage<{ tagId: string }>('delete-tag', async ({ data }) => {
   await ensureReady()
