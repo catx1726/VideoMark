@@ -27,7 +27,7 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **`structuredMarks` 改用 `shallowRef`** | 母库 CR #47 | 低 | 中 | ⭐⭐⭐⭐ | `useSidepanelData.ts:10` 的 `structuredMarks` 是大型嵌套 TagTree，当前用 `ref` 产生深度响应式追踪开销；`buildTagTree` 整体替换语义与 `shallowRef` 天然匹配。注意 `:55` 的 `watch(..., { deep: true })` 监听的是 `marksByUrl`，不受影响。 |
 | **时间轴视图状态持久化** | 盘点 | 低 | 中 | ⭐⭐⭐ | `useUIState.ts:13` 的 `timelineViewUrls` 是内存 `Set`，侧边栏重开后视图偏好丢失。可镜像到 `storage.local`（本地偏好，不同步）。 |
-| **截图存储与配额压力评估** | 盘点 | 中 | 高 | ⭐⭐⭐⭐ | `Mark.screenshot` 为 base64 JPEG（单张 15-30KB），直接内嵌 `marksByUrl` 主存储，既放大每次读写的序列化开销，也挤占 Gist 同步 10MB 上限。建议评估：截图剥离到独立 storage key 按需加载，或同步时默认剥离截图。 |
+| **截图存储与配额压力（已实测复现卡死）** | 盘点 + Driver 实测（2026-09-22） | 中 | 高 | ⭐⭐⭐⭐⭐ | **实测现象**：截图默认开启 + 高画质时，`storage.local` 超 10MB（Chrome 配额上限）后功能卡死，甚至浏览器整体卡死。**根因**：①`Mark.screenshot` base64 内嵌 `marks-by-url-storage` 单一 key，约 150~300 张高画质截图即触顶；②`useWebExtensionStorage` deep watch 导致任意标记变更都全量 `JSON.stringify` + `set` 整个 10MB 字符串；③`storage.onChanged` 把完整 newValue 广播到每个上下文，所有页面/sidepanel 同步反序列化 10MB；④超配额后 `set` 抛错但 `onError` 仅 `console.error`，写入方无反馈静默挂起。**修复方向**：截图剥离为 Blob 存 IndexedDB（marks 仅存 ID，同步时剥离）；保底方案为写入前配额检查 + 降级丢弃截图 + 手动触发写入替代 deep watch。 |
 
 ## 2. 可观测性与监控类
 
@@ -90,7 +90,7 @@
 | CI 接入 | 本文档 §5 | 待办（P0） | lifecycle 闭环前置 |
 | i18n 英文 | 本文档 §3 | 待办（P1） | 移植母库 Spec |
 | typecheck 换 vue-tsc | 本文档 §4 | 待办（P1） | 一行脚本改动 + 修存量错误 |
-| 截图存储剥离评估 | 本文档 §1 | 待办（P1） | 需先出 Spec |
+| 截图存储剥离（IndexedDB）| 本文档 §1，Driver 实测卡死已确认 | 待办（P0） | 需先出 Spec；保底配额保护可先行 |
 
 ---
 
