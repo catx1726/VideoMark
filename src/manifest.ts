@@ -59,6 +59,12 @@ export async function getManifest() {
         },
         description: '标记当前视频时间点',
       },
+      'quick-video-mark': {
+        suggested_key: {
+          default: 'Ctrl+Shift+S',
+        },
+        description: '快速保存当前时间标记（不弹备注框）',
+      },
     },
     content_security_policy: {
       extension_pages: isDev

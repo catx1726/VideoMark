@@ -196,7 +196,6 @@ const sortedVideoMarks = computed(() => {
       <div v-if="isTimelineView" class="pt-2">
         <TimelineView
           :marks="sortedVideoMarks"
-          :url="url"
           :expanded-texts="expandedTexts"
           :expanded-notes="expandedNotes"
           :editing-mark-id="editingMarkId"

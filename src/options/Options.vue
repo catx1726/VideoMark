@@ -382,7 +382,9 @@ onUnmounted(() => {
               <p class="text-neutral-600 dark:text-neutral-300">
                 在任意网页观看视频时，按下
                 <kbd class="px-1.5 py-0.5 rounded bg-neutral-200 dark:bg-neutral-600 font-mono text-xs border border-neutral-300 dark:border-neutral-500">Ctrl+Shift+L</kbd>
-                即可标记当前视频时间点。打开侧边栏可查看所有标记。
+                标记当前时间点（可弹窗加备注），或按下
+                <kbd class="px-1.5 py-0.5 rounded bg-neutral-200 dark:bg-neutral-600 font-mono text-xs border border-neutral-300 dark:border-neutral-500">Ctrl+Shift+S</kbd>
+                静默快速标记。打开侧边栏可查看所有标记。
               </p>
             </div>
 

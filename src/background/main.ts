@@ -857,17 +857,17 @@ onMessage<{ tagId: string }>('delete-tag', async ({ data }) => {
 
 // --- 全局快捷键命令监听 ---
 browser.commands?.onCommand?.addListener(async (command) => {
-  if (command === 'mark-video-timestamp') {
+  if (command === 'mark-video-timestamp' || command === 'quick-video-mark') {
     try {
       const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
       if (tab?.id) {
-        sendMessage('mark-video-timestamp', {}, { context: 'content-script', tabId: tab.id }).catch((err) => {
-          console.error('[Background] Failed to send mark-video-timestamp to content script:', err)
+        sendMessage(command, {}, { context: 'content-script', tabId: tab.id }).catch((err) => {
+          console.error(`[Background] Failed to send ${command} to content script:`, err)
         })
       }
     }
     catch (error) {
-      console.error('[Background] Error handling mark-video-timestamp command:', error)
+      console.error(`[Background] Error handling ${command} command:`, error)
     }
   }
 })

@@ -525,7 +525,7 @@ let isMarking = false
  * 保存视频标记
  * 查找主视频 → 等待加载 → 创建标记 → 发送给 background
  */
-export async function saveVideoMark(): Promise<{ success: boolean, message?: string }> {
+export async function saveVideoMark(options?: { skipPopup?: boolean }): Promise<{ success: boolean, message?: string }> {
   // 防抖检查
   if (isMarking) {
     console.log('[VideoMarker] Already processing a mark, skipping')
@@ -555,9 +555,9 @@ export async function saveVideoMark(): Promise<{ success: boolean, message?: str
     // 显示一个短暂的视觉反馈（可选：Toast 或页面内提示）
     showFeedbackToast(`已标记: ${mark.text}${mark.isLive ? ' (直播)' : ''}`)
 
-    // 根据配置决定是否弹出备注框
+    // 根据配置决定是否弹出备注框（静默快速标记强制跳过）
     const strategy = settings.value.notePopupStrategy || 'always'
-    const shouldSkipPopup = strategy === 'never' || (strategy === 'skip-fullscreen' && isFullscreen())
+    const shouldSkipPopup = options?.skipPopup || strategy === 'never' || (strategy === 'skip-fullscreen' && isFullscreen())
 
     if (!shouldSkipPopup) {
       showNotePopup(mark, async (note: string) => {
