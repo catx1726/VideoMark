@@ -48,7 +48,7 @@
 | **直播标记体验强化** | 盘点 | 低 | 中 | ⭐⭐⭐ | 直播标记禁止跳转（`useMarkActions.ts:58` 仅 alert 提示）。建议：侧边栏直播标记加 🔴 徽标与"直播"筛选；TimelineView 对 `isLive` 标记跳过进度条定位（直播无固定时长，`trackDuration` 兜底逻辑 `timestamp*1.1` 对直播无意义）。 |
 | **时间轴视图增强** | 盘点 | 中 | 中 | ⭐⭐⭐ | 当前 `TimelineView.vue` 仅过滤 `type==='video'` 且按 timestamp 排序。可增强：①进度条点击空白处直接跳转视频到该时间（当前只在 5% 容差内跳最近标记）②悬停 tooltip 显示截图缩略图 ③与列表视图共享搜索过滤（当前时间轴无视 `searchQuery`）。 |
 | **导出格式扩展（Obsidian/Notion/HTML）** | 母库分析 | 中 | 高 | ⭐⭐⭐⭐ | 当前仅纯 Markdown 导出（Turndown）。视频标记可导出为带 `mm:ss` 时间戳链接的 Obsidian callout 或 YouTube 章节格式（`00:00 标题` 清单），直接可用作视频章节。 |
-| **品牌色统一** | 母库 2026-08-20 | 低 | 高 | ⭐⭐⭐ | UI 主色为 blue（`#3B82F6` 硬编码于 `PageSection.vue` 层级边框、`TimelineView.vue` 默认标记色等）。需先由 Driver 决策 VideoMark 品牌色（不必跟随母库 amber），再统一 token 化。 |
+| **品牌色统一** | 母库 2026-08-20 | 低 | 高 | [已完成] | 2026-09-22（Issue #1，分支 `issue-1`）：blue → amber 琥珀橙全量替换（43 处 class + 21 处硬编码 hex），主按钮 amber-500 + neutral-900 深字；同步完成 neutral 色板迁移、去阴影、z-index token 化（`layers.ts`）、主题手动切换（`theme.ts`）。 |
 | **设置即改即存** | 母库产品实测 | 低-中 | 中 | ⭐⭐⭐ | 若 Options 仍是显式保存模型，改 watch + 防抖自动保存；Gist Token 等敏感项仍需显式确认。动手前先核实当前保存交互。 |
 
 ## 4. 代码质量与规范类 (Low Hanging Fruits)
@@ -83,6 +83,7 @@
 | 项目 | 来源 | 状态 | 关联 |
 | :--- | :--- | :--- | :--- |
 | 母库 P0-P4 同步 | 同步报告 `docs/superpowers/plans/highlight-mark-flow-sync-report.md` | 已完成 | `e854c7b` |
+| 母库美学移植（amber/neutral/质感/z-token/主题切换） | Issue #1 Spec `2026-09-22-aesthetic-alignment-design.md` | 已完成（待 Driver 视觉验收） | 分支 `issue-1`（638d1c8/3fc6f90/99dbd63） |
 | 侧边栏时间轴视图（按页面切换） | 既有实现 | 已完成 | `PageSection.vue` / `TimelineView.vue` |
 | 删除撤销 (Undo Toast) | 本文档 §3 | 待办（P0） | 复用 `deletedAt` 墓碑 |
 | 本地 JSON 备份/导入 | 本文档 §3 | 待办（P0） | 可移植母库 `2026-09-11-local-backup-design.md` |
