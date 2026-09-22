@@ -139,32 +139,24 @@ function formatTime(seconds: number): string {
     <div class="relative">
       <div
         ref="trackRef"
-        class="h-10 w-full rounded-md bg-neutral-200 dark:bg-neutral-700 relative cursor-pointer overflow-hidden select-none"
+        class="h-3 w-full rounded-full bg-neutral-200 dark:bg-neutral-700 relative cursor-pointer select-none"
         @mousemove="onTrackHover"
         @mouseleave="onTrackLeave"
         @click="onTrackClick"
       >
-        <!-- 背景渐变 -->
-        <div class="absolute inset-0 bg-gradient-to-r from-neutral-300/50 via-transparent to-neutral-300/50 dark:from-neutral-600/30 dark:to-neutral-600/30" />
-
         <!-- 标记点 hit area（宽大，便于 hover/点击）；z-10 为进度条内部局部堆叠，不入 layers token 表 -->
         <div
           v-for="mark in marks"
           :key="mark.id"
-          class="absolute top-0 h-full flex items-center justify-center z-10"
-          style="width: 20px; transform: translateX(-50%);"
+          class="absolute top-1/2 h-3 flex items-center justify-center z-10"
+          style="width: 20px; transform: translate(-50%, -50%);"
           :style="{ left: `${getMarkPercent(mark)}%` }"
         >
           <!-- 可见标记点 -->
           <div
-            class="w-1.5 h-7 rounded-sm transition-all duration-150"
-            :class="hoveredMarkId === mark.id ? 'scale-125' : ''"
-            :style="{
-              backgroundColor: mark.color || '#F59E0B',
-              boxShadow: hoveredMarkId === mark.id
-                ? `0 0 8px ${mark.color || '#F59E0B'}`
-                : `0 0 4px ${mark.color || '#F59E0B'}`,
-            }"
+            class="w-1.5 h-4 rounded-full transition-all duration-150"
+            :class="hoveredMarkId === mark.id ? 'scale-125' : 'opacity-90'"
+            :style="{ backgroundColor: mark.color || '#F59E0B' }"
           />
         </div>
 

@@ -100,7 +100,7 @@ const sortedVideoMarks = computed(() => {
 
 <template>
   <section
-    class="bg-white border-neutral-100 dark:bg-neutral-800 dark:border-neutral-700 rounded-md border"
+    class="bg-white border-neutral-100 dark:bg-neutral-800 dark:border-neutral-700 rounded-md border p-[12px]"
   >
     <header
       class="border-neutral-200 dark:border-neutral-700 group/page flex cursor-pointer items-center justify-between border-b pb-[8px] mb-[8px]"

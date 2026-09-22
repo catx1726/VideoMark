@@ -25,8 +25,8 @@ function onClearSearch() {
 </script>
 
 <template>
-  <header class="sticky top-0" :style="{ zIndex: Z_LAYERS.stickyHeader }">
-    <h1 class="text-xl font-bold text-center text-neutral-800 dark:text-neutral-200 mt-4 mb-2">
+  <header class="sticky top-0 -mx-4 -mt-4 px-4 pt-4 pb-2 bg-neutral-100 dark:bg-neutral-900" :style="{ zIndex: Z_LAYERS.stickyHeader }">
+    <h1 class="text-xl font-bold text-center text-neutral-800 dark:text-neutral-200 mb-2">
       标记管理
     </h1>
 
