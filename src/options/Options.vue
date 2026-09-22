@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref, watch, watchEffect } from 'vue'
-import { usePreferredDark } from '@vueuse/core'
 import { cloneDeep } from 'lodash-es'
 import browser from 'webextension-polyfill'
 import { sendMessage } from 'webext-bridge/options'
@@ -8,17 +7,12 @@ import { getLogs } from '../logic/errorCollector'
 import { getActiveSectionId } from './scrollSpy'
 import { settings } from '~/logic/settings'
 import { Z_LAYERS } from '~/logic/layers'
+import { isDark } from '~/logic/theme'
 import { dataReady, marksByUrl, syncConfig, syncReady, syncStatus, tagsMetadata, tagsReady } from '~/logic/storage'
 import { createGist, getGists } from '~/logic/sync'
 import { t } from '~/logic/i18n'
 import { VIDEO_MARK_COMMAND } from '~/logic/config'
 
-const isDark = usePreferredDark()
-watchEffect(() => {
-  if (isDark.value)
-    document.documentElement.classList.add('dark')
-  else document.documentElement.classList.remove('dark')
-})
 // Local state for editing to enable explicit saving
 const localSettings = reactive(cloneDeep(settings.value))
 const saveStatus = ref('')
@@ -26,6 +20,13 @@ const syncConnectStatus = ref('')
 const isJustSaved = ref(false)
 let saveTimeout: number | undefined
 let saveResetTimeout: number | undefined
+
+// 主题：共享 isDark（手动切换 + 跟随系统，见 logic/theme.ts）
+watchEffect(() => {
+  if (isDark.value)
+    document.documentElement.classList.add('dark')
+  else document.documentElement.classList.remove('dark')
+})
 
 // --- 快捷键设置 ---
 const videoMarkShortcut = ref('Ctrl+Shift+L')
@@ -242,6 +243,7 @@ async function triggerPull({ force = false, timeoutMs = 8000, token = '', gistId
 const navItems = [
   { id: 'welcome', label: '欢迎使用' },
   { id: 'shortcuts', label: '快捷键设置' },
+  { id: 'appearance', label: '外观' },
   { id: 'video-mark', label: '视频标记设置' },
   { id: 'blacklist', label: '网站黑名单' },
   { id: 'error-logs', label: '错误日志' },
@@ -481,6 +483,33 @@ onUnmounted(() => {
                 <span class="text-[13px] text-neutral-500">点击浏览器工具栏上的扩展图标即可打开侧边栏</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Appearance -->
+        <div id="appearance" class="setting-card scroll-mt-8">
+          <h2 class="text-[18px] font-semibold mb-[12px]">
+            外观
+          </h2>
+          <p class="text-[14px] text-neutral-500 mb-[16px]">
+            选择扩展界面（弹出框、侧边栏、设置页及页面内弹窗）的主题。
+          </p>
+          <div class="flex items-center gap-[16px]">
+            <label class="w-[96px] shrink-0">主题:</label>
+            <select
+              v-model="localSettings.theme"
+              class="px-[8px] py-[4px] border rounded-md bg-neutral-50 dark:bg-neutral-800 text-sm"
+            >
+              <option value="auto">
+                跟随系统
+              </option>
+              <option value="light">
+                浅色
+              </option>
+              <option value="dark">
+                深色
+              </option>
+            </select>
           </div>
         </div>
 

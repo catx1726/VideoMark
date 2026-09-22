@@ -1,10 +1,11 @@
-import { createApp, h, onMounted, ref } from 'vue'
+import { createApp, h, onMounted, ref, watchEffect } from 'vue'
 import type { App } from 'vue'
 import VideoMarkNotePopup from './views/VideoMarkNotePopup.vue'
 import ScreenshotPreview from './views/ScreenshotPreview.vue'
 import type { Mark } from '~/logic/storage'
 import { ShadowDOMManager } from '~/logic/shadowDom'
 import { getMaxZIndex } from '~/logic/dom'
+import { isDark } from '~/logic/theme'
 import browser from 'webextension-polyfill'
 
 const NOTE_CONTAINER_ID = 'videomark-note-popup-container'
@@ -23,9 +24,8 @@ function createShadowContainer(id: string): HTMLDivElement {
   ShadowDOMManager.attachStylesheet(shadowRoot, browser.runtime.getURL('dist/contentScripts/style.css'))
   
   const uiRoot = document.createElement('div')
-  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  if (isDark)
-    uiRoot.classList.add('dark')
+  // 共享 isDark 实时跟随（含手动主题切换），替代一次性 matchMedia
+  watchEffect(() => uiRoot.classList.toggle('dark', isDark.value))
   shadowRoot.appendChild(uiRoot)
   
   return uiRoot

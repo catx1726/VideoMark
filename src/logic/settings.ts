@@ -11,6 +11,7 @@ export const defaultSettings = {
   ],
   blacklist: [] as string[],
   autoAssociation: true,
+  theme: 'auto' as 'auto' | 'light' | 'dark', // 主题偏好：跟随系统/浅色/深色
 
   // --- 视频标记设置 ---
   videoMarkColor: '#F59E0B', // amber-500，视频标记默认颜色（品牌色）
