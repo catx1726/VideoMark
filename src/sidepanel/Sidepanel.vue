@@ -83,6 +83,10 @@ const {
 
 const isStorageExpanded = ref(false)
 
+// --- 主 header 高度测量（供文件夹行/网页标题吸顶定位，见 layers.ts） ---
+const headerCompRef = ref<InstanceType<typeof SidepanelHeader> | null>(null)
+let headerResizeObserver: ResizeObserver | null = null
+
 // --- Event Handlers ---
 
 async function removeAllMarksForUrl(url: string) {
@@ -137,10 +141,23 @@ onMounted(() => {
   refreshUsage()
   refreshAllMarks()
   document.addEventListener('click', closeMenus)
+
+  // 测量主 header 实际高度写入 CSS 变量，供下级吸顶定位（母库同款方案）：
+  // header 高度可变（新建标签展开时增高），需 ResizeObserver 追踪
+  const headerEl = headerCompRef.value?.$el
+  if (headerEl instanceof HTMLElement) {
+    const updateHeaderHeight = () => {
+      document.documentElement.style.setProperty('--sidepanel-header-h', `${headerEl.offsetHeight}px`)
+    }
+    updateHeaderHeight()
+    headerResizeObserver = new ResizeObserver(updateHeaderHeight)
+    headerResizeObserver.observe(headerEl)
+  }
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', closeMenus)
+  headerResizeObserver?.disconnect()
 })
 
 function toggleGroup(url: string, groupTitle: string, totalMarks: number) {
@@ -206,10 +223,11 @@ async function handleDeleteTag(tagId: string) {
 
 <template>
   <main
-    class="min-h-screen bg-neutral-100 dark:bg-neutral-900 p-4 font-sans relative text-neutral-800 dark:text-neutral-200 flex flex-col gap-4"
+    class="min-h-screen bg-neutral-100 dark:bg-neutral-900 px-4 font-sans relative text-neutral-800 dark:text-neutral-200 flex flex-col gap-4"
     :class="isStorageExpanded ? 'pb-48' : 'pb-16'"
   >
     <SidepanelHeader
+      ref="headerCompRef"
       v-model:new-tag-name="newTagName"
       v-model:search-query="searchQuery"
       v-model:compact-mode="compactMode"

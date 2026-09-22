@@ -25,12 +25,14 @@ function onClearSearch() {
 </script>
 
 <template>
-  <header class="sticky top-0 -mx-4 -mt-4 px-4 pt-4 pb-2 bg-neutral-100 dark:bg-neutral-900" :style="{ zIndex: Z_LAYERS.stickyHeader }">
+  <!-- sticky top-0 + pt-4：顶部间距由 header 自身 padding 提供（背景同步覆盖），
+       吸顶位置=初始位置，无跳变；滚动内容不会从 header 上方穿透（母库同款方案） -->
+  <header class="sticky top-0 bg-neutral-100 dark:bg-neutral-900 pt-4 pb-2" :style="{ zIndex: Z_LAYERS.stickyHeader }">
     <h1 class="text-xl font-bold text-center text-neutral-800 dark:text-neutral-200 mb-2">
       标记管理
     </h1>
 
-    <div class="px-2 space-y-2">
+    <div class="space-y-2">
       <div
         class="flex gap-2 bg-white dark:bg-neutral-800 p-2 rounded-md border border-neutral-100 dark:border-neutral-700"
       >

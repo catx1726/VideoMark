@@ -4,6 +4,7 @@ import type { Mark } from '~/logic/storage'
 
 defineProps<{
   marks: Mark[]
+  url: string
   expandedTexts: Set<string>
   expandedNotes: Set<string>
   editingMarkId: string | null

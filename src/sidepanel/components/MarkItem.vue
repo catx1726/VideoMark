@@ -2,6 +2,7 @@
 import { nextTick, ref, toRaw, watch } from 'vue'
 import { sendMessage } from 'webext-bridge/options'
 import browser from 'webextension-polyfill'
+import { MENU_HEIGHTS, shouldMenuOpenUp } from '../composables/menuPosition'
 import { Z_LAYERS } from '~/logic/layers'
 import type { Mark } from '~/logic/storage'
 
@@ -40,6 +41,14 @@ watch(() => props.isEditing, async (newVal) => {
 
 function handleSave() {
   emit('save', props.mark, editingNote.value)
+}
+
+// --- 菜单翻向：底部空间不足时向上弹出，避免被固定底栏/视口底边截断 ---
+const menuOpensUp = ref(false)
+
+function onMenuClick(e: MouseEvent) {
+  menuOpensUp.value = shouldMenuOpenUp(e, MENU_HEIGHTS.mark)
+  emit('toggle-menu', props.mark.id)
 }
 
 function formatDuration(seconds: number): string {
@@ -212,7 +221,7 @@ async function handleScreenshotClick() {
       <button
         class="text-neutral-400 hover:text-neutral-600 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
         title="更多操作"
-        @click.stop="emit('toggle-menu', mark.id)"
+        @click.stop="onMenuClick"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -229,7 +238,8 @@ async function handleScreenshotClick() {
       <transition name="fade-scale">
         <div
           v-if="activeMenu === mark.id"
-          class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 mt-2 w-48 rounded-md border"
+          class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 w-48 rounded-md border"
+          :class="menuOpensUp ? 'bottom-full mb-2' : 'mt-2'"
           :style="{ zIndex: Z_LAYERS.menuElevated }"
           @click.stop
         >
