@@ -7,6 +7,7 @@ import { sendMessage } from 'webext-bridge/options'
 import { getLogs } from '../logic/errorCollector'
 import { getActiveSectionId } from './scrollSpy'
 import { settings } from '~/logic/settings'
+import { Z_LAYERS } from '~/logic/layers'
 import { dataReady, marksByUrl, syncConfig, syncReady, syncStatus, tagsMetadata, tagsReady } from '~/logic/storage'
 import { createGist, getGists } from '~/logic/sync'
 import { t } from '~/logic/i18n'
@@ -326,7 +327,7 @@ onUnmounted(() => {
       <!-- 左侧导航 -->
       <aside class="hidden md:block">
         <div class="sticky top-[40px] self-start">
-          <div class="bg-white dark:bg-neutral-800 rounded-lg shadow-md p-[16px]">
+          <div class="bg-white dark:bg-neutral-800 rounded-md border border-neutral-200 dark:border-neutral-700 p-[16px]">
             <h1 class="text-[20px] font-bold mb-[16px] text-neutral-900 dark:text-neutral-100">
               设置
             </h1>
@@ -771,11 +772,12 @@ onUnmounted(() => {
     <!-- 弹窗提示 -->
     <div
       v-if="alertInfo.visible"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+      :style="{ zIndex: Z_LAYERS.modal }"
       @click.self="hideAlert"
     >
       <div
-        class="bg-white dark:bg-neutral-900 rounded-lg shadow-xl p-[24px] w-full max-w-md text-neutral-800 dark:text-neutral-200"
+        class="bg-white dark:bg-neutral-900 rounded-md p-[24px] w-full max-w-md text-neutral-800 dark:text-neutral-200"
       >
         <h3 class="text-[18px] font-semibold mb-[16px]">
           {{ alertInfo.title }}
@@ -799,7 +801,7 @@ onUnmounted(() => {
 
 <style scoped>
 .setting-card {
-  @apply bg-white dark:bg-neutral-800 p-[24px] rounded-lg shadow-md;
+  @apply bg-white dark:bg-neutral-800 p-[24px] rounded-md border border-neutral-200 dark:border-neutral-700;
 }
 
 /* 确保平滑滚动生效 */

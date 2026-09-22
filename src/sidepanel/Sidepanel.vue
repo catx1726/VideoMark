@@ -15,6 +15,7 @@ import { useStorageMonitor } from './composables/useStorageMonitor'
 import SidepanelHeader from './components/SidepanelHeader.vue'
 import TagFolder from './components/TagFolder.vue'
 import StorageManager from './components/StorageManager.vue'
+import { Z_LAYERS } from '~/logic/layers'
 import { marksByUrl, tagsMetadata } from '~/logic/storage'
 
 // --- Setup ---
@@ -227,7 +228,7 @@ async function handleDeleteTag(tagId: string) {
     >
       <div
         v-if="Object.keys(marksByUrl).length === 0 && Object.keys(tagsMetadata).length === 0"
-        class="flex flex-col items-center justify-center text-neutral-500 rounded-lg bg-white dark:bg-neutral-800 p-6 shadow-md py-12"
+        class="flex flex-col items-center justify-center text-neutral-500 rounded-md bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 p-6 py-12"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -327,10 +328,11 @@ async function handleDeleteTag(tagId: string) {
     <!-- Tag Picker Dialog -->
     <div
       v-if="tagPickerVisible"
-      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+      class="fixed inset-0 bg-black/40 flex items-center justify-center"
+      :style="{ zIndex: Z_LAYERS.modal }"
       @click.self="closeTagPicker"
     >
-      <div class="bg-white dark:bg-neutral-800 rounded-lg shadow-xl p-5 w-80 max-w-full mx-4">
+      <div class="bg-white dark:bg-neutral-800 rounded-md border border-neutral-200 dark:border-neutral-700 p-5 w-80 max-w-full mx-4">
         <h3 class="text-base font-semibold mb-3 text-neutral-800 dark:text-neutral-200">
           标签
         </h3>
@@ -373,10 +375,11 @@ async function handleDeleteTag(tagId: string) {
     <!-- Rename Tag Dialog -->
     <div
       v-if="renameDialogVisible"
-      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+      class="fixed inset-0 bg-black/40 flex items-center justify-center"
+      :style="{ zIndex: Z_LAYERS.modal }"
       @click.self="cancelRename"
     >
-      <div class="bg-white dark:bg-neutral-800 rounded-lg shadow-xl p-5 w-72 max-w-full mx-4">
+      <div class="bg-white dark:bg-neutral-800 rounded-md border border-neutral-200 dark:border-neutral-700 p-5 w-72 max-w-full mx-4">
         <h3 class="text-base font-semibold mb-3 text-neutral-800 dark:text-neutral-200">
           重命名标签
         </h3>

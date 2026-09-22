@@ -2,6 +2,7 @@
 import { nextTick, ref, toRaw, watch } from 'vue'
 import { sendMessage } from 'webext-bridge/options'
 import browser from 'webextension-polyfill'
+import { Z_LAYERS } from '~/logic/layers'
 import type { Mark } from '~/logic/storage'
 
 const props = defineProps<{
@@ -198,12 +199,13 @@ async function handleScreenshotClick() {
       <!-- 图片放大预览 overlay -->
       <div
         v-if="previewImage"
-        class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+        class="fixed inset-0 bg-black/80 flex items-center justify-center p-4"
+        :style="{ zIndex: Z_LAYERS.modal }"
         @click="previewImage = null"
       >
         <img
           :src="previewImage"
-          class="max-w-full max-h-full object-contain rounded shadow-2xl"
+          class="max-w-full max-h-full object-contain rounded"
           alt="预览"
         >
       </div>
@@ -227,7 +229,8 @@ async function handleScreenshotClick() {
       <transition name="fade-scale">
         <div
           v-if="activeMenu === mark.id"
-          class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 z-30 mt-2 w-48 rounded-md border shadow-lg"
+          class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 mt-2 w-48 rounded-md border"
+          :style="{ zIndex: Z_LAYERS.menuElevated }"
           @click.stop
         >
           <div class="py-1">

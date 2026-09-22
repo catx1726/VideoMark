@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Z_LAYERS } from '~/logic/layers'
+
 defineProps<{
   newTagName: string
   isCreatingTag: boolean
@@ -23,14 +25,14 @@ function onClearSearch() {
 </script>
 
 <template>
-  <header class="sticky top-0 z-40">
+  <header class="sticky top-0" :style="{ zIndex: Z_LAYERS.stickyHeader }">
     <h1 class="text-xl font-bold text-center text-neutral-800 dark:text-neutral-200 mt-4 mb-2">
       标记管理
     </h1>
 
     <div class="px-2 space-y-2">
       <div
-        class="flex gap-2 bg-white dark:bg-neutral-800 p-2 rounded-lg shadow-sm border border-neutral-100 dark:border-neutral-700"
+        class="flex gap-2 bg-white dark:bg-neutral-800 p-2 rounded-md border border-neutral-100 dark:border-neutral-700"
       >
         <div class="relative flex-1">
           <svg
@@ -87,7 +89,7 @@ function onClearSearch() {
 
       <div
         v-if="isCreatingTag"
-        class="flex gap-2 bg-white dark:bg-neutral-800 p-2 rounded-lg shadow-sm border border-neutral-100 dark:border-neutral-700"
+        class="flex gap-2 bg-white dark:bg-neutral-800 p-2 rounded-md border border-neutral-100 dark:border-neutral-700"
       >
         <input
           :value="newTagName"
@@ -98,7 +100,7 @@ function onClearSearch() {
           @keydown.esc="emit('cancel-creating-tag')"
         >
         <button
-          class="bg-amber-500 hover:bg-amber-600 rounded-md px-4 py-1.5 text-sm font-medium text-neutral-900 shadow-sm transition-colors"
+          class="bg-amber-500 hover:bg-amber-600 rounded-md px-4 py-1.5 text-sm font-medium text-neutral-900 transition-colors"
           @click="emit('create-tag')"
         >
           创建

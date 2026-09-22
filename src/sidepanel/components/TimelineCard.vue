@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { Z_LAYERS } from '~/logic/layers'
 import type { Mark } from '~/logic/storage'
 
 const props = defineProps<{
@@ -57,7 +58,7 @@ const hasScreenshot = computed(() => {
 </script>
 
 <template>
-  <div class="group relative flex gap-3 rounded-lg bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700 p-3 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700/80">
+  <div class="group relative flex gap-3 rounded-md bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700 p-3 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700/80">
     <!-- 左侧颜色条 -->
     <div
       class="w-1 flex-shrink-0 rounded-full self-stretch"
@@ -108,7 +109,8 @@ const hasScreenshot = computed(() => {
           <transition name="fade-scale">
             <div
               v-if="activeMenu === mark.id"
-              class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 z-30 mt-1 w-40 rounded-md border shadow-lg"
+              class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 mt-1 w-40 rounded-md border"
+              :style="{ zIndex: Z_LAYERS.menuElevated }"
               @click.stop
             >
               <div class="py-1">
@@ -194,12 +196,13 @@ const hasScreenshot = computed(() => {
     <!-- 图片放大预览 overlay -->
     <div
       v-if="previewImage"
-      class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+      class="fixed inset-0 bg-black/80 flex items-center justify-center p-4"
+      :style="{ zIndex: Z_LAYERS.modal }"
       @click="previewImage = null"
     >
       <img
         :src="previewImage"
-        class="max-w-full max-h-full object-contain rounded shadow-2xl"
+        class="max-w-full max-h-full object-contain rounded"
         alt="预览"
       >
     </div>

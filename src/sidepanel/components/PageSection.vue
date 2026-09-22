@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useUIState } from '../composables/useUIState'
 import MarkItem from './MarkItem.vue'
 import TimelineView from './TimelineView.vue'
+import { Z_LAYERS } from '~/logic/layers'
 import type { Mark } from '~/logic/storage'
 import type { MarkGroup } from '~/logic/tagTree'
 
@@ -99,7 +100,7 @@ const sortedVideoMarks = computed(() => {
 
 <template>
   <section
-    class="bg-white border-neutral-100 dark:bg-neutral-800 dark:border-neutral-700 rounded-lg border shadow-sm p-[12px]"
+    class="bg-white border-neutral-100 dark:bg-neutral-800 dark:border-neutral-700 rounded-md border"
   >
     <header
       class="border-neutral-200 dark:border-neutral-700 group/page flex cursor-pointer items-center justify-between border-b pb-[8px] mb-[8px]"
@@ -150,7 +151,8 @@ const sortedVideoMarks = computed(() => {
         <transition name="fade-scale">
           <div
             v-if="activeUrlMenu === url"
-            class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 z-20 mt-2 w-32 rounded-md border shadow-lg"
+            class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 mt-2 w-32 rounded-md border"
+            :style="{ zIndex: Z_LAYERS.menuElevated }"
           >
             <ul class="py-1">
               <li>
@@ -238,7 +240,8 @@ const sortedVideoMarks = computed(() => {
               <transition name="fade-scale">
                 <div
                   v-if="activeGroupMenu === `${url}|${group.title}`"
-                  class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 z-20 mt-1 w-36 rounded-md border shadow-lg"
+                  class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 mt-1 w-36 rounded-md border"
+                  :style="{ zIndex: Z_LAYERS.menuElevated }"
                 >
                   <ul class="py-1">
                     <li>

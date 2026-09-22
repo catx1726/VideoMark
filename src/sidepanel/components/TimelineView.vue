@@ -139,7 +139,7 @@ function formatTime(seconds: number): string {
     <div class="relative">
       <div
         ref="trackRef"
-        class="h-10 w-full rounded-lg bg-neutral-200 dark:bg-neutral-700 relative cursor-pointer overflow-hidden select-none"
+        class="h-10 w-full rounded-md bg-neutral-200 dark:bg-neutral-700 relative cursor-pointer overflow-hidden select-none"
         @mousemove="onTrackHover"
         @mouseleave="onTrackLeave"
         @click="onTrackClick"
@@ -147,7 +147,7 @@ function formatTime(seconds: number): string {
         <!-- 背景渐变 -->
         <div class="absolute inset-0 bg-gradient-to-r from-neutral-300/50 via-transparent to-neutral-300/50 dark:from-neutral-600/30 dark:to-neutral-600/30" />
 
-        <!-- 标记点 hit area（宽大，便于 hover/点击） -->
+        <!-- 标记点 hit area（宽大，便于 hover/点击）；z-10 为进度条内部局部堆叠，不入 layers token 表 -->
         <div
           v-for="mark in marks"
           :key="mark.id"
@@ -168,13 +168,13 @@ function formatTime(seconds: number): string {
           />
         </div>
 
-        <!-- 悬停 tooltip（放在进度条内部上方） -->
+        <!-- 悬停 tooltip（放在进度条内部上方）；z-20 同为局部堆叠 -->
         <div
           v-if="tooltip.visible"
           class="absolute top-0 left-0 pointer-events-none z-20"
           :style="{ left: `${tooltip.left}px`, transform: 'translateX(-50%) translateY(-115%)' }"
         >
-          <div class="bg-black/85 text-white text-[11px] px-2 py-1 rounded-md whitespace-nowrap shadow-lg">
+          <div class="bg-black/85 text-white text-[11px] px-2 py-1 rounded-md whitespace-nowrap">
             <div class="font-semibold">{{ tooltip.text }}</div>
             <div v-if="tooltip.detail" class="text-[10px] opacity-80 max-w-[160px] truncate">
               {{ tooltip.detail }}

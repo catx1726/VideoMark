@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import PageSection from './PageSection.vue'
+import { Z_LAYERS } from '~/logic/layers'
 import type { Mark } from '~/logic/storage'
 import type { TagTree } from '~/logic/tagTree'
 
@@ -55,10 +56,10 @@ function isUrlCollapsed(url: string): boolean {
   <details
     name="tag-folder"
     :open="isOpen"
-    class="mb-6 shadow-sm group/folder"
+    class="mb-6 group/folder"
   >
     <summary
-      class="flex items-center gap-2 p-2 bg-neutral-200 dark:bg-neutral-700 rounded-t-lg cursor-pointer hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors border border-neutral-200 dark:border-neutral-700 list-none rounded-b-lg group-open/folder:rounded-b-none"
+      class="flex items-center gap-2 p-2 bg-neutral-200 dark:bg-neutral-700 rounded-t-md cursor-pointer hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors border border-neutral-200 dark:border-neutral-700 list-none rounded-b-md group-open/folder:rounded-b-none"
       :class="{ 'opacity-50 grayscale': folder.totalMarks === 0 }"
     >
       <svg
@@ -93,7 +94,8 @@ function isUrlCollapsed(url: string): boolean {
         <transition name="fade-scale">
           <div
             v-if="activeFolderMenu === tagId"
-            class="absolute right-0 mt-2 w-40 bg-white dark:bg-neutral-700 rounded-md shadow-lg z-20 border border-neutral-200 dark:border-neutral-600"
+            class="absolute right-0 mt-2 w-40 bg-white dark:bg-neutral-700 rounded-md border border-neutral-200 dark:border-neutral-600"
+            :style="{ zIndex: Z_LAYERS.menuElevated }"
           >
             <ul class="py-1">
               <li>
@@ -149,7 +151,7 @@ function isUrlCollapsed(url: string): boolean {
     </summary>
 
     <div
-      class="space-y-4 p-2 border-x border-b border-neutral-200 dark:border-neutral-700 rounded-b-lg bg-neutral-50 dark:bg-neutral-800"
+      class="space-y-4 ml-3 pl-3 border-l-2 border-neutral-200 dark:border-neutral-700"
     >
       <div
         v-if="Object.keys(folder.pages).length === 0"

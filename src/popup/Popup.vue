@@ -117,7 +117,7 @@ async function openSidePanel() {
         设置
       </button>
       <button
-        class="px-4 py-2 rounded-md bg-amber-500 text-neutral-900 font-medium shadow-sm transition-colors hover:bg-amber-600"
+        class="px-4 py-2 rounded-md bg-amber-500 text-neutral-900 font-medium transition-colors hover:bg-amber-600"
         @click="openSidePanel"
       >
         打开侧边栏
