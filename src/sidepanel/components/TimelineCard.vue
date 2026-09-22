@@ -57,11 +57,11 @@ const hasScreenshot = computed(() => {
 </script>
 
 <template>
-  <div class="group relative flex gap-3 rounded-lg bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 p-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/80">
+  <div class="group relative flex gap-3 rounded-lg bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700 p-3 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700/80">
     <!-- 左侧颜色条 -->
     <div
       class="w-1 flex-shrink-0 rounded-full self-stretch"
-      :style="{ backgroundColor: mark.color || '#3B82F6' }"
+      :style="{ backgroundColor: mark.color || '#F59E0B' }"
     />
 
     <!-- 主体内容 -->
@@ -72,7 +72,7 @@ const hasScreenshot = computed(() => {
           <!-- 时间戳按钮（可点击跳转） -->
           <button
             class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold text-white flex-shrink-0 transition-transform hover:scale-105"
-            :style="{ backgroundColor: mark.color || '#3B82F6' }"
+            :style="{ backgroundColor: mark.color || '#F59E0B' }"
             @click="emit('goto', mark)"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
@@ -83,13 +83,13 @@ const hasScreenshot = computed(() => {
 
           <span
             v-if="mark.platform && mark.platform !== 'generic'"
-            class="text-[11px] text-gray-400 dark:text-gray-500 capitalize flex-shrink-0"
+            class="text-[11px] text-neutral-400 dark:text-neutral-500 capitalize flex-shrink-0"
           >
             {{ mark.platform }}
           </span>
           <span
             v-if="!mark.isLive && mark.duration"
-            class="text-[11px] text-gray-400 dark:text-gray-500 flex-shrink-0"
+            class="text-[11px] text-neutral-400 dark:text-neutral-500 flex-shrink-0"
           >
             / {{ formatDuration(mark.duration) }}
           </span>
@@ -98,7 +98,7 @@ const hasScreenshot = computed(() => {
         <!-- 菜单按钮 -->
         <div class="relative flex-shrink-0">
           <button
-            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+            class="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
             @click.stop="emit('toggle-menu', mark.id)"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -108,12 +108,12 @@ const hasScreenshot = computed(() => {
           <transition name="fade-scale">
             <div
               v-if="activeMenu === mark.id"
-              class="bg-white border-gray-200 dark:bg-gray-700 dark:border-gray-600 absolute right-0 z-30 mt-1 w-40 rounded-md border shadow-lg"
+              class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 z-30 mt-1 w-40 rounded-md border shadow-lg"
               @click.stop
             >
               <div class="py-1">
                 <button
-                  class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm"
+                  class="text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm"
                   @click="emit('open-tag-picker', mark)"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -122,13 +122,13 @@ const hasScreenshot = computed(() => {
                   管理标签
                 </button>
                 <button
-                  class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm"
+                  class="text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm"
                   @click="emit('copy', mark)"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                   复制标记
                 </button>
-                <div class="border-gray-100 dark:border-gray-600 my-1 border-t" />
+                <div class="border-neutral-100 dark:border-neutral-600 my-1 border-t" />
                 <button
                   class="hover:bg-red-50 dark:hover:bg-red-900/50 w-full px-3 py-1.5 text-left text-sm text-red-600 dark:text-red-400 flex items-center gap-2"
                   @click="emit('remove', mark)"
@@ -160,7 +160,7 @@ const hasScreenshot = computed(() => {
         <textarea
           ref="textareaRef"
           v-model="editingNote"
-          class="border-gray-300 dark:bg-gray-700 dark:border-gray-600 w-full rounded-md p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          class="border-neutral-300 dark:bg-neutral-700 dark:border-neutral-600 w-full rounded-md p-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
           rows="2"
           placeholder="添加备注..."
           @keydown.enter.prevent="handleSave"
@@ -168,13 +168,13 @@ const hasScreenshot = computed(() => {
         />
         <div class="mt-2 flex justify-end gap-2">
           <button
-            class="bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 rounded-md px-3 py-1 text-xs font-medium"
+            class="bg-neutral-200 text-neutral-800 hover:bg-neutral-300 dark:bg-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-500 rounded-md px-3 py-1 text-xs font-medium"
             @click.stop="emit('cancel')"
           >
             取消
           </button>
           <button
-            class="bg-blue-600 hover:bg-blue-700 rounded-md px-3 py-1 text-xs font-medium text-white"
+            class="bg-amber-500 hover:bg-amber-600 rounded-md px-3 py-1 text-xs font-medium text-neutral-900"
             @click.stop="handleSave"
           >
             保存
@@ -184,7 +184,7 @@ const hasScreenshot = computed(() => {
       <p
         v-else
         :title="mark.note"
-        class="text-gray-500 dark:text-gray-400 dark:hover:text-blue-400 cursor-pointer text-xs transition-colors hover:text-blue-600"
+        class="text-neutral-500 dark:text-neutral-400 dark:hover:text-amber-400 cursor-pointer text-xs transition-colors hover:text-amber-600"
         @click.stop="emit('edit', mark)"
       >
         {{ mark.note || '点击添加备注...' }}

@@ -58,12 +58,12 @@ function isUrlCollapsed(url: string): boolean {
     class="mb-6 shadow-sm group/folder"
   >
     <summary
-      class="flex items-center gap-2 p-2 bg-gray-200 dark:bg-gray-700 rounded-t-lg cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-700 list-none rounded-b-lg group-open/folder:rounded-b-none"
+      class="flex items-center gap-2 p-2 bg-neutral-200 dark:bg-neutral-700 rounded-t-lg cursor-pointer hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors border border-neutral-200 dark:border-neutral-700 list-none rounded-b-lg group-open/folder:rounded-b-none"
       :class="{ 'opacity-50 grayscale': folder.totalMarks === 0 }"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        class="h-5 w-5 text-gray-500 transition-transform duration-200 group-open/folder:rotate-0 rotate-[-90deg]"
+        class="h-5 w-5 text-neutral-500 transition-transform duration-200 group-open/folder:rotate-0 rotate-[-90deg]"
         viewBox="0 0 20 20"
         fill="currentColor"
       >
@@ -73,15 +73,15 @@ function isUrlCollapsed(url: string): boolean {
           clip-rule="evenodd"
         />
       </svg>
-      <span class="font-bold text-gray-700 dark:text-gray-200 flex-1">{{ folder.tagName }}</span>
+      <span class="font-bold text-neutral-700 dark:text-neutral-200 flex-1">{{ folder.tagName }}</span>
       <span
-        class="px-2 py-0.5 text-xs font-semibold bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-full mr-2"
+        class="px-2 py-0.5 text-xs font-semibold bg-neutral-300 dark:bg-neutral-600 text-neutral-600 dark:text-neutral-300 rounded-full mr-2"
       >
         {{ folder.totalMarks }}
       </span>
       <div class="relative flex-shrink-0" @click.stop>
         <button
-          class="p-1 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-full"
+          class="p-1 text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 rounded-full"
           @click="emit('toggle-folder-menu', tagId)"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -93,12 +93,12 @@ function isUrlCollapsed(url: string): boolean {
         <transition name="fade-scale">
           <div
             v-if="activeFolderMenu === tagId"
-            class="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-700 rounded-md shadow-lg z-20 border border-gray-200 dark:border-gray-600"
+            class="absolute right-0 mt-2 w-40 bg-white dark:bg-neutral-700 rounded-md shadow-lg z-20 border border-neutral-200 dark:border-neutral-600"
           >
             <ul class="py-1">
               <li>
                 <button
-                  class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
+                  class="w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex items-center gap-2"
                   @click="emit('export-tag-folder', folder)"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
@@ -107,7 +107,7 @@ function isUrlCollapsed(url: string): boolean {
               </li>
               <li>
                 <button
-                  class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
+                  class="w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex items-center gap-2"
                   @click="emit('open-rename-dialog', tagId)"
                 >
                   <svg
@@ -149,11 +149,11 @@ function isUrlCollapsed(url: string): boolean {
     </summary>
 
     <div
-      class="space-y-4 p-2 border-x border-b border-gray-200 dark:border-gray-700 rounded-b-lg bg-gray-50 dark:bg-gray-800"
+      class="space-y-4 p-2 border-x border-b border-neutral-200 dark:border-neutral-700 rounded-b-lg bg-neutral-50 dark:bg-neutral-800"
     >
       <div
         v-if="Object.keys(folder.pages).length === 0"
-        class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm"
+        class="text-center py-8 text-neutral-400 dark:text-neutral-500 text-sm"
       >
         暂无标记
       </div>

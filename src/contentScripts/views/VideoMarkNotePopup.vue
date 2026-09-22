@@ -118,7 +118,7 @@ defineExpose({ show, hide })
 <template>
   <div
     v-if="visible"
-    class="fixed rounded-lg bg-white shadow-2xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 font-sans"
+    class="fixed rounded-lg bg-white shadow-2xl border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 font-sans"
     :style="{
       top: `${position.y}px`,
       left: `${position.x}px`,
@@ -129,24 +129,24 @@ defineExpose({ show, hide })
   >
     <!-- 标题栏 -->
     <div
-      class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700 cursor-move select-none"
+      class="flex items-center justify-between px-4 py-3 border-b border-neutral-100 dark:border-neutral-700 cursor-move select-none"
       @mousedown="startDrag"
     >
       <div class="flex items-center gap-2">
         <!-- 拖动把手 -->
         <div class="flex flex-col gap-1">
-          <div class="w-4 h-0.5 bg-gray-300 dark:bg-gray-600 rounded" />
-          <div class="w-4 h-0.5 bg-gray-300 dark:bg-gray-600 rounded" />
-          <div class="w-4 h-0.5 bg-gray-300 dark:bg-gray-600 rounded" />
+          <div class="w-4 h-0.5 bg-neutral-300 dark:bg-neutral-600 rounded" />
+          <div class="w-4 h-0.5 bg-neutral-300 dark:bg-neutral-600 rounded" />
+          <div class="w-4 h-0.5 bg-neutral-300 dark:bg-neutral-600 rounded" />
         </div>
         <div class="flex items-center gap-1.5">
-          <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">VideoMark</span>
-          <span v-if="timestamp" class="text-xs text-gray-500 dark:text-gray-400 font-mono">{{ timestamp }}</span>
+          <span class="text-sm font-semibold text-neutral-800 dark:text-neutral-100">VideoMark</span>
+          <span v-if="timestamp" class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">{{ timestamp }}</span>
         </div>
       </div>
 
       <button
-        class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+        class="p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-700"
         @click="onCancel"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -160,7 +160,7 @@ defineExpose({ show, hide })
       <textarea
         ref="textareaRef"
         v-model="noteValue"
-        class="w-full min-h-[120px] resize-y rounded-md border border-gray-300 p-3 text-sm leading-relaxed focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:border-blue-400 dark:focus:ring-blue-400 outline-none"
+        class="w-full min-h-[120px] resize-y rounded-md border border-neutral-300 p-3 text-sm leading-relaxed focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-200 dark:placeholder-neutral-400 dark:focus:border-amber-400 dark:focus:ring-amber-400 outline-none"
         placeholder="在这里输入你的备注..."
         @keydown.esc="onCancel"
         @keydown.enter="onSave"
@@ -169,13 +169,13 @@ defineExpose({ show, hide })
       <!-- 按钮区域 -->
       <div class="flex justify-end gap-2 mt-3">
         <button
-          class="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors"
+          class="px-3 py-1.5 text-xs font-medium text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-neutral-200 dark:hover:bg-neutral-700 rounded-md transition-colors"
           @click="onCancel"
         >
           取消
         </button>
         <button
-          class="px-4 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors shadow-sm"
+          class="px-4 py-1.5 bg-amber-500 text-neutral-900 text-xs font-medium rounded-md hover:bg-amber-600 transition-colors shadow-sm"
           @click="onSave"
         >
           保存

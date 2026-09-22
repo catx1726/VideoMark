@@ -436,7 +436,7 @@ export async function createVideoMark(video: HTMLVideoElement): Promise<Mark> {
     url: window.location.href,
     text: formattedTime,
     note: '',
-    color: settings.value.videoMarkColor || '#3B82F6',
+    color: settings.value.videoMarkColor || '#F59E0B',
     createdAt: Date.now(),
     title: document.title,
     domIndex: Math.round(info.currentTime * 1000), // 用于按时间排序

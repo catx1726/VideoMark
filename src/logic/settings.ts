@@ -13,7 +13,7 @@ export const defaultSettings = {
   autoAssociation: true,
 
   // --- 视频标记设置 ---
-  videoMarkColor: '#3B82F6', // blue-500，视频标记默认颜色
+  videoMarkColor: '#F59E0B', // amber-500，视频标记默认颜色（品牌色）
   screenshotStrategy: 'live-only' as 'live-only' | 'always' | 'never', // 截图策略
   screenshotWidth: 320, // 截图宽度（px）
   screenshotHeight: 180, // 截图高度（px）

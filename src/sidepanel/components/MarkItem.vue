@@ -121,13 +121,13 @@ async function handleScreenshotClick() {
         </span>
         <span
           v-if="mark.platform && mark.platform !== 'generic'"
-          class="text-[11px] text-gray-400 dark:text-gray-500 capitalize"
+          class="text-[11px] text-neutral-400 dark:text-neutral-500 capitalize"
         >
           {{ mark.platform }}
         </span>
         <span
           v-if="!mark.isLive && mark.duration"
-          class="text-[11px] text-gray-400 dark:text-gray-500"
+          class="text-[11px] text-neutral-400 dark:text-neutral-500"
         >
           / {{ formatDuration(mark.duration) }}
         </span>
@@ -137,7 +137,7 @@ async function handleScreenshotClick() {
         <!-- 文本标记内容 -->
         <div
           v-if="mark.type !== 'video'"
-          class="rich-text-content text-gray-800 dark:text-gray-200 ease-in-out max-w-none overflow-hidden text-sm font-medium transition-all duration-300"
+          class="rich-text-content text-neutral-800 dark:text-neutral-200 ease-in-out max-w-none overflow-hidden text-sm font-medium transition-all duration-300"
           :class="isExpanded ? 'max-h-96' : 'max-h-5'"
           v-html="mark.html || mark.text"
         />
@@ -156,7 +156,7 @@ async function handleScreenshotClick() {
         </div>
         <div
           v-else
-          class="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+          class="text-sm text-neutral-600 dark:text-neutral-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
         >
           {{ mark.text }} — 点击跳转
         </div>
@@ -165,19 +165,19 @@ async function handleScreenshotClick() {
         <textarea
           ref="textareaRef"
           v-model="editingNote"
-          class="border-gray-300 dark:bg-gray-700 dark:border-gray-600 w-full rounded-md p-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          class="border-neutral-300 dark:bg-neutral-700 dark:border-neutral-600 w-full rounded-md p-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
           @keydown.enter.prevent="handleSave"
           @keydown.esc="emit('cancel')"
         />
         <div class="mt-2 flex justify-end gap-2">
           <button
-            class="action-button bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 rounded-md px-3 py-1 text-sm font-medium"
+            class="action-button bg-neutral-200 text-neutral-800 hover:bg-neutral-300 dark:bg-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-500 rounded-md px-3 py-1 text-sm font-medium"
             @click.stop="emit('cancel')"
           >
             取消
           </button>
           <button
-            class="action-button bg-blue-600 hover:bg-blue-700 rounded-md px-3 py-1 text-sm font-medium text-white"
+            class="action-button bg-amber-500 hover:bg-amber-600 rounded-md px-3 py-1 text-sm font-medium text-neutral-900"
             @click.stop="handleSave"
           >
             保存
@@ -187,7 +187,7 @@ async function handleScreenshotClick() {
       <p
         v-else
         :title="mark.note"
-        class="text-gray-500 dark:text-gray-400 dark:hover:text-blue-400 ease-in-out mt-1 cursor-pointer overflow-hidden text-xs transition-all duration-300 hover:text-blue-600"
+        class="text-neutral-500 dark:text-neutral-400 dark:hover:text-amber-400 ease-in-out mt-1 cursor-pointer overflow-hidden text-xs transition-all duration-300 hover:text-amber-600"
         :class="isNoteExpanded ? 'max-h-96' : 'max-h-5'"
         @click.stop="emit('edit', mark)"
       >
@@ -208,7 +208,7 @@ async function handleScreenshotClick() {
         >
       </div>
       <button
-        class="text-gray-400 hover:text-gray-600 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        class="text-neutral-400 hover:text-neutral-600 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
         title="更多操作"
         @click.stop="emit('toggle-menu', mark.id)"
       >
@@ -227,33 +227,33 @@ async function handleScreenshotClick() {
       <transition name="fade-scale">
         <div
           v-if="activeMenu === mark.id"
-          class="bg-white border-gray-200 dark:bg-gray-700 dark:border-gray-600 absolute right-0 z-30 mt-2 w-48 rounded-md border shadow-lg"
+          class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 z-30 mt-2 w-48 rounded-md border shadow-lg"
           @click.stop
         >
           <div class="py-1">
             <button
-              class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
+              class="text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
               @click="emit('toggle-expand', mark.id)"
             >
               <span>{{ isExpanded ? '收起标记' : '展开标记' }}</span>
             </button>
             <button
               v-if="mark.note"
-              class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
+              class="text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
               @click="emit('toggle-note-expand', mark.id)"
             >
               <span>{{ isNoteExpanded ? '收起备注' : '展开备注' }}</span>
             </button>
-            <div class="border-gray-100 dark:border-gray-600 my-1 border-t" />
+            <div class="border-neutral-100 dark:border-neutral-600 my-1 border-t" />
             <button
-              class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 w-full px-4 py-2 text-left text-sm"
+              class="text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 w-full px-4 py-2 text-left text-sm"
               @click="emit('open-tag-picker', mark)"
             >
               管理标签
             </button>
 
             <button
-              class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
+              class="text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
               @click="emit('copy', mark)"
             >
               <span>复制标记</span>

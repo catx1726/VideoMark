@@ -139,13 +139,13 @@ function formatTime(seconds: number): string {
     <div class="relative">
       <div
         ref="trackRef"
-        class="h-10 w-full rounded-lg bg-gray-200 dark:bg-gray-700 relative cursor-pointer overflow-hidden select-none"
+        class="h-10 w-full rounded-lg bg-neutral-200 dark:bg-neutral-700 relative cursor-pointer overflow-hidden select-none"
         @mousemove="onTrackHover"
         @mouseleave="onTrackLeave"
         @click="onTrackClick"
       >
         <!-- 背景渐变 -->
-        <div class="absolute inset-0 bg-gradient-to-r from-gray-300/50 via-transparent to-gray-300/50 dark:from-gray-600/30 dark:to-gray-600/30" />
+        <div class="absolute inset-0 bg-gradient-to-r from-neutral-300/50 via-transparent to-neutral-300/50 dark:from-neutral-600/30 dark:to-neutral-600/30" />
 
         <!-- 标记点 hit area（宽大，便于 hover/点击） -->
         <div
@@ -160,10 +160,10 @@ function formatTime(seconds: number): string {
             class="w-1.5 h-7 rounded-sm transition-all duration-150"
             :class="hoveredMarkId === mark.id ? 'scale-125' : ''"
             :style="{
-              backgroundColor: mark.color || '#3B82F6',
+              backgroundColor: mark.color || '#F59E0B',
               boxShadow: hoveredMarkId === mark.id
-                ? `0 0 8px ${mark.color || '#3B82F6'}`
-                : `0 0 4px ${mark.color || '#3B82F6'}`,
+                ? `0 0 8px ${mark.color || '#F59E0B'}`
+                : `0 0 4px ${mark.color || '#F59E0B'}`,
             }"
           />
         </div>
@@ -184,7 +184,7 @@ function formatTime(seconds: number): string {
       </div>
 
       <!-- 起止时间标签 -->
-      <div class="flex justify-between text-[10px] text-gray-400 dark:text-gray-500 mt-1 px-1">
+      <div class="flex justify-between text-[10px] text-neutral-400 dark:text-neutral-500 mt-1 px-1">
         <span>00:00</span>
         <span>{{ formatTime(trackDuration) }}</span>
       </div>
@@ -213,7 +213,7 @@ function formatTime(seconds: number): string {
       />
     </div>
 
-    <div v-if="marks.length === 0" class="text-center py-6 text-gray-400 dark:text-gray-500 text-sm">
+    <div v-if="marks.length === 0" class="text-center py-6 text-neutral-400 dark:text-neutral-500 text-sm">
       暂无视频标记
     </div>
   </div>

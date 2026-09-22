@@ -49,26 +49,26 @@ const emit = defineEmits<{
 
 function getLevelClass(level: number) {
   const levelStyles: Record<number, string> = {
-    1: 'text-sm font-bold text-gray-900 dark:text-gray-100',
-    2: 'text-sm font-semibold text-gray-800 dark:text-gray-200',
-    3: 'text-xs font-semibold text-gray-700 dark:text-gray-300',
-    4: 'text-xs font-medium text-gray-600 dark:text-gray-400',
-    5: 'text-xs font-medium text-gray-600 dark:text-gray-400',
-    6: 'text-xs font-medium text-gray-600 dark:text-gray-400',
+    1: 'text-sm font-bold text-neutral-900 dark:text-neutral-100',
+    2: 'text-sm font-semibold text-neutral-800 dark:text-neutral-200',
+    3: 'text-xs font-semibold text-neutral-700 dark:text-neutral-300',
+    4: 'text-xs font-medium text-neutral-600 dark:text-neutral-400',
+    5: 'text-xs font-medium text-neutral-600 dark:text-neutral-400',
+    6: 'text-xs font-medium text-neutral-600 dark:text-neutral-400',
   }
-  return levelStyles[level] || 'text-xs font-medium text-gray-500 dark:text-gray-500'
+  return levelStyles[level] || 'text-xs font-medium text-neutral-500 dark:text-neutral-500'
 }
 
 function getLevelBorderStyle(level: number) {
   const styles: Record<number, Record<string, string>> = {
-    1: { borderLeft: '4px solid #3B82F6' },
-    2: { borderLeft: '3px solid #60A5FA' },
-    3: { borderLeft: '2px solid #93C5FD' },
-    4: { borderLeft: '1px solid #BFDBFE' },
-    5: { borderLeft: '1px solid #BFDBFE' },
-    6: { borderLeft: '1px solid #BFDBFE' },
+    1: { borderLeft: '4px solid #F59E0B' },
+    2: { borderLeft: '3px solid #FBBF24' },
+    3: { borderLeft: '2px solid #FCD34D' },
+    4: { borderLeft: '1px solid #FDE68B' },
+    5: { borderLeft: '1px solid #FDE68B' },
+    6: { borderLeft: '1px solid #FDE68B' },
   }
-  return styles[level] || { borderLeft: '1px solid #BFDBFE' }
+  return styles[level] || { borderLeft: '1px solid #FDE68B' }
 }
 
 function isGroupCollapsed(groupTitle: string): boolean {
@@ -99,16 +99,16 @@ const sortedVideoMarks = computed(() => {
 
 <template>
   <section
-    class="bg-white border-gray-100 dark:bg-gray-800 dark:border-gray-700 rounded-lg border shadow-sm p-[12px]"
+    class="bg-white border-neutral-100 dark:bg-neutral-800 dark:border-neutral-700 rounded-lg border shadow-sm p-[12px]"
   >
     <header
-      class="border-gray-200 dark:border-gray-700 group/page flex cursor-pointer items-center justify-between border-b pb-[8px] mb-[8px]"
+      class="border-neutral-200 dark:border-neutral-700 group/page flex cursor-pointer items-center justify-between border-b pb-[8px] mb-[8px]"
       @click="emit('toggle-url-collapse', url)"
     >
       <div class="min-w-0 flex-1 flex items-center gap-2">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-[14px] w-[14px] flex-shrink-0 text-gray-400 transition-transform duration-200 group-hover/page:text-gray-600"
+          class="h-[14px] w-[14px] flex-shrink-0 text-neutral-400 transition-transform duration-200 group-hover/page:text-neutral-600"
           :class="{ 'rotate-[-90deg]': isCollapsed }"
           viewBox="0 0 20 20"
           fill="currentColor"
@@ -119,14 +119,14 @@ const sortedVideoMarks = computed(() => {
             clip-rule="evenodd"
           />
         </svg>
-        <h2 class="dark:text-gray-300 truncate text-sm font-semibold text-gray-700" :title="url">
+        <h2 class="dark:text-neutral-300 truncate text-sm font-semibold text-neutral-700" :title="url">
           {{ urlData.pageTitle }}
         </h2>
       </div>
       <div class="relative flex-shrink-0 flex items-center gap-1" @click.stop>
         <!-- 视图切换按钮 -->
         <button
-          class="text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300 rounded-full p-1 transition-colors"
+          class="text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300 rounded-full p-1 transition-colors"
           :title="isTimelineView ? '切换到列表视图' : '切换到时间轴视图'"
           @click="toggleTimelineView(url)"
         >
@@ -138,7 +138,7 @@ const sortedVideoMarks = computed(() => {
           </svg>
         </button>
         <button
-          class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-full p-1"
+          class="text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 rounded-full p-1"
           @click="emit('toggle-url-menu', url)"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -150,12 +150,12 @@ const sortedVideoMarks = computed(() => {
         <transition name="fade-scale">
           <div
             v-if="activeUrlMenu === url"
-            class="bg-white border-gray-200 dark:bg-gray-700 dark:border-gray-600 absolute right-0 z-20 mt-2 w-32 rounded-md border shadow-lg"
+            class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 z-20 mt-2 w-32 rounded-md border shadow-lg"
           >
             <ul class="py-1">
               <li>
                 <button
-                  class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
+                  class="text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
                   @click="emit('export-markdown', urlData)"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
@@ -164,7 +164,7 @@ const sortedVideoMarks = computed(() => {
               </li>
               <li>
                 <button
-                  class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
+                  class="text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
                   @click="emit('open-tag-picker', url)"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -215,17 +215,17 @@ const sortedVideoMarks = computed(() => {
       <div v-else>
         <div v-for="group in urlData.groups" :key="group.title" class="group-container mt-1">
           <header
-            class="group group-header hover:bg-gray-100 dark:hover:bg-gray-800 -mx-2 flex cursor-pointer items-center justify-between px-2 py-2 transition-colors"
+            class="group group-header hover:bg-neutral-100 dark:hover:bg-neutral-800 -mx-2 flex cursor-pointer items-center justify-between px-2 py-2 transition-colors"
             :style="getLevelBorderStyle(group.level)"
             @click="emit('toggle-group', url, group.title, urlData.totalMarks)"
           >
             <h3 class="min-w-0 flex-1 truncate" :class="getLevelClass(group.level)">
               {{ group.title }}
-              <span class="text-gray-400 text-xs font-normal">({{ group.count }})</span>
+              <span class="text-neutral-400 text-xs font-normal">({{ group.count }})</span>
             </h3>
             <div class="relative ml-2 flex-shrink-0" @click.stop>
               <button
-                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full p-1 opacity-0 transition-opacity group-hover:opacity-100"
+                class="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 rounded-full p-1 opacity-0 transition-opacity group-hover:opacity-100"
                 title="分组操作"
                 @click="emit('toggle-group-menu', url, group.title)"
               >
@@ -238,12 +238,12 @@ const sortedVideoMarks = computed(() => {
               <transition name="fade-scale">
                 <div
                   v-if="activeGroupMenu === `${url}|${group.title}`"
-                  class="bg-white border-gray-200 dark:bg-gray-700 dark:border-gray-600 absolute right-0 z-20 mt-1 w-36 rounded-md border shadow-lg"
+                  class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 z-20 mt-1 w-36 rounded-md border shadow-lg"
                 >
                   <ul class="py-1">
                     <li>
                       <button
-                        class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm"
+                        class="text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm"
                         @click="emit('export-group', url, group)"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
@@ -252,7 +252,7 @@ const sortedVideoMarks = computed(() => {
                     </li>
                     <li>
                       <button
-                        class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm"
+                        class="text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm"
                         @click="emit('open-group-tag-picker', url, group.title)"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
