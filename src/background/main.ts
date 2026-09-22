@@ -440,6 +440,11 @@ onMessage('refresh-sidepanel-data', async () => {
   await browser.runtime.sendMessage({ type: 'refresh-sidepanel-data' }).catch(() => {})
 })
 
+// 播放位置中转：content script 节流上报 → 广播给侧边栏时间轴播放头
+onMessage('playback-position', async ({ data }) => {
+  await browser.runtime.sendMessage({ type: 'playback-position', payload: data }).catch(() => {})
+})
+
 onMessage('open-options-page', async () => {
   browser.runtime.openOptionsPage()
 })

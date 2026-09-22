@@ -2,6 +2,7 @@ import { onMessage } from 'webext-bridge/content-script'
 import { collectError } from '../logic/errorCollector'
 import { gotoVideoTimestamp, saveVideoMark } from './videoMarker'
 import { initMarkTrack, refreshMarkTrack, startVideoDiscovery } from './markTrack'
+import { startPlaybackReporter } from './playbackReporter'
 import { showScreenshotPreview } from './uiManager'
 import { isPageBlacklisted, settings, settingsReady } from '~/logic/settings'
 import '../styles'
@@ -26,6 +27,8 @@ async function initialize() {
     await initMarkTrack()
     // 如果初始化时没找到视频（SPA 场景），启动发现模式持续监听
     startVideoDiscovery()
+    // 启动播放位置上报（供侧边栏时间轴播放头）
+    startPlaybackReporter()
     console.log('[ContentScript] Initialization complete.')
   }
   catch (e) {
