@@ -33,8 +33,9 @@ export const shortcuts = {
 
 // --- Video Mark ---
 export const VIDEO_MARK_COMMAND = 'mark-video-timestamp'
+export const QUICK_VIDEO_MARK_COMMAND = 'quick-video-mark'
 export const VIDEO_MARK_SHORTCUT = 'Ctrl+Shift+L'
-export const VIDEO_MARK_DEFAULT_COLOR = '#3B82F6'
+export const VIDEO_MARK_DEFAULT_COLOR = '#F59E0B'
 
 // Screenshot thumbnail config
 export const SCREENSHOT_WIDTH = 320

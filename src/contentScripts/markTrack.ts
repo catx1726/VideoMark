@@ -177,7 +177,7 @@ function createAnchorElement(mark: any, percent: number): HTMLElement {
     bottom: 0;
     width: ${ANCHOR_WIDTH}px;
     height: ${ANCHOR_HEIGHT}px;
-    background-color: ${mark.color || '#3B82F6'};
+    background-color: ${mark.color || '#F59E0B'};
     border-radius: 1px;
     transform: translateX(-50%);
     pointer-events: auto;

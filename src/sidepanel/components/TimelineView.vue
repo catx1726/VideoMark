@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import TimelineCard from './TimelineCard.vue'
+import { isPlaybackOnPage, usePlaybackPosition } from '../composables/usePlaybackPosition'
+import { Z_LAYERS } from '~/logic/layers'
 import type { Mark } from '~/logic/storage'
 
 const props = defineProps<{
@@ -25,99 +27,70 @@ const emit = defineEmits<{
   (e: 'open-tag-picker', mark: Mark): void
 }>()
 
-// ── 进度条 ──
+// ── 比例轨道刻度 ──
+// 刻度按 timestamp/时长真实比例落点（顶部=00:00，底部=视频末尾），
+// 与卡片流解耦：轨道是「分布总览」，卡片是「内容列表」。
+const { playback } = usePlaybackPosition()
+
 const trackDuration = computed(() => {
-  // 优先用标记中存储的 duration
   const stored = props.marks.map(m => m.duration).filter((d): d is number => !!d)
-  if (stored.length > 0)
-    return Math.max(...stored)
-  // 兜底：用最大 timestamp * 1.1
-  const maxTs = Math.max(...props.marks.map(m => m.timestamp || 0))
-  return maxTs > 0 ? maxTs * 1.1 : 1
+  let scale = stored.length > 0 ? Math.max(...stored) : 0
+  if (scale <= 0) {
+    const maxTs = Math.max(...props.marks.map(m => m.timestamp || 0), 0)
+    scale = maxTs > 0 ? maxTs * 1.1 : 1
+  }
+  // 播放中上报的真实时长优先（标记存储的 duration 可能过时）
+  if (playback.value && isPlaybackOnPage(props.url) && playback.value.duration > scale)
+    scale = playback.value.duration
+  return scale
 })
 
-function getMarkPercent(mark: Mark): number {
-  if (!mark.timestamp || !trackDuration.value)
-    return 0
-  return Math.min(100, Math.max(0, (mark.timestamp / trackDuration.value) * 100))
+const tickMarks = computed(() => props.marks.filter(m => m.timestamp != null))
+
+function getPercent(timestamp: number): number {
+  return Math.min(100, Math.max(0, (timestamp / trackDuration.value) * 100))
 }
 
-// Tooltip
-const tooltip = ref<{ text: string, detail: string, left: number, visible: boolean }>({
-  text: '',
-  detail: '',
-  left: 0,
-  visible: false,
+// ── 播放头：当前播放位置（仅当播放页与本页匹配时显示） ──
+const playheadPct = computed(() => {
+  if (!playback.value || !isPlaybackOnPage(props.url))
+    return null
+  return getPercent(playback.value.currentTime)
 })
-const trackRef = ref<HTMLElement | null>(null)
+
+// ── 交互：hover 预览 / 点击跳转 ──
+const railRef = ref<HTMLElement | null>(null)
 const hoveredMarkId = ref<string | null>(null)
+const tooltip = ref<{ text: string, topPct: number } | null>(null)
 
-function onTrackHover(e: MouseEvent) {
-  if (!trackRef.value)
-    return
-  const rect = trackRef.value.getBoundingClientRect()
-  const percent = (e.clientX - rect.left) / rect.width
-  const time = percent * trackDuration.value
-
-  // 检查是否悬停在某个标记点附近（更大的容差：16px）
-  let nearMark: Mark | null = null
-  const pixelTolerance = 10
-  for (const mark of props.marks) {
-    const markPercent = getMarkPercent(mark)
-    const markPixel = (markPercent / 100) * rect.width
-    const mousePixel = e.clientX - rect.left
-    if (Math.abs(markPixel - mousePixel) <= pixelTolerance) {
-      nearMark = mark
-      break
-    }
-  }
-
-  if (nearMark) {
-    hoveredMarkId.value = nearMark.id
-    tooltip.value = {
-      text: nearMark.text,
-      detail: nearMark.note || '点击跳转',
-      left: e.clientX - rect.left,
-      visible: true,
-    }
-  }
-  else {
-    hoveredMarkId.value = null
-    tooltip.value = {
-      text: formatTime(time),
-      detail: '',
-      left: e.clientX - rect.left,
-      visible: true,
-    }
+function onTickEnter(mark: Mark) {
+  hoveredMarkId.value = mark.id
+  tooltip.value = {
+    text: `${formatTime(mark.timestamp || 0)} ${mark.note || mark.text}`,
+    topPct: getPercent(mark.timestamp || 0),
   }
 }
 
-function onTrackLeave() {
-  tooltip.value.visible = false
+function onRailLeave() {
   hoveredMarkId.value = null
+  tooltip.value = null
 }
 
-function onTrackClick(e: MouseEvent) {
-  if (!trackRef.value)
+function onRailClick(e: MouseEvent) {
+  if (!railRef.value)
     return
-  const rect = trackRef.value.getBoundingClientRect()
-  const percent = (e.clientX - rect.left) / rect.width
-  // 找到最近的标记并跳转
-  const targetTime = percent * trackDuration.value
-  let closestMark: Mark | null = null
-  let minDiff = Infinity
-  for (const mark of props.marks) {
-    const ts = mark.timestamp || 0
-    const diff = Math.abs(ts - targetTime)
-    if (diff < minDiff) {
-      minDiff = diff
-      closestMark = mark
-    }
-  }
-  if (closestMark && minDiff < trackDuration.value * 0.05) {
-    // 5% 容差内认为是点击了某个标记
-    emit('goto', closestMark)
-  }
+  const rect = railRef.value.getBoundingClientRect()
+  const pct = Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height))
+  // 点击空白处：跳转到对应时间点（合成最小 mark 复用 goto 链路）
+  emit('goto', {
+    id: '',
+    url: props.url,
+    type: 'video',
+    timestamp: pct * trackDuration.value,
+    isLive: false,
+    text: '',
+    createdAt: Date.now(),
+  } as Mark)
 }
 
 function formatTime(seconds: number): string {
@@ -134,64 +107,52 @@ function formatTime(seconds: number): string {
 </script>
 
 <template>
-  <div class="space-y-3">
-    <!-- 迷你进度条 -->
-    <div class="relative">
+  <div class="flex gap-3">
+    <!-- 比例轨道：分布总览 + 播放头 + 点击跳转 -->
+    <div
+      ref="railRef"
+      class="relative w-3 flex-shrink-0 self-stretch cursor-pointer select-none"
+      title="点击跳转到对应时间点"
+      @mouseleave="onRailLeave"
+      @click="onRailClick"
+    >
+      <!-- 轨道线 -->
+      <div class="absolute left-1/2 top-1 bottom-1 w-[3px] -translate-x-1/2 rounded-full bg-neutral-200 dark:bg-neutral-700" />
+
+      <!-- 标记刻度（按时间比例落点） -->
+      <button
+        v-for="mark in tickMarks"
+        :key="mark.id"
+        class="absolute left-1/2 w-[9px] h-[3px] rounded-full transition-transform duration-150"
+        :style="{
+          top: `${getPercent(mark.timestamp || 0)}%`,
+          transform: hoveredMarkId === mark.id ? 'translate(-50%, -50%) scale(1.8)' : 'translate(-50%, -50%)',
+          backgroundColor: mark.color || '#F59E0B',
+        }"
+        @mouseenter="onTickEnter(mark)"
+        @click.stop="emit('goto', mark)"
+      />
+
+      <!-- 播放头：当前播放位置 -->
       <div
-        ref="trackRef"
-        class="h-10 w-full rounded-lg bg-gray-200 dark:bg-gray-700 relative cursor-pointer overflow-hidden select-none"
-        @mousemove="onTrackHover"
-        @mouseleave="onTrackLeave"
-        @click="onTrackClick"
+        v-if="playheadPct !== null"
+        class="absolute left-[-1px] right-[-1px] h-[2px] rounded bg-neutral-800 dark:bg-neutral-100 pointer-events-none"
+        :style="{ top: `${playheadPct}%`, transform: 'translateY(-50%)' }"
+        :title="`当前播放 ${formatTime(playback!.currentTime)}`"
+      />
+
+      <!-- hover 预览 tooltip -->
+      <div
+        v-if="tooltip"
+        class="absolute left-4 pointer-events-none max-w-[180px] truncate bg-black/85 text-white text-[11px] px-2 py-1 rounded-md whitespace-nowrap"
+        :style="{ top: `${tooltip.topPct}%`, transform: 'translateY(-50%)', zIndex: Z_LAYERS.menuElevated }"
       >
-        <!-- 背景渐变 -->
-        <div class="absolute inset-0 bg-gradient-to-r from-gray-300/50 via-transparent to-gray-300/50 dark:from-gray-600/30 dark:to-gray-600/30" />
-
-        <!-- 标记点 hit area（宽大，便于 hover/点击） -->
-        <div
-          v-for="mark in marks"
-          :key="mark.id"
-          class="absolute top-0 h-full flex items-center justify-center z-10"
-          style="width: 20px; transform: translateX(-50%);"
-          :style="{ left: `${getMarkPercent(mark)}%` }"
-        >
-          <!-- 可见标记点 -->
-          <div
-            class="w-1.5 h-7 rounded-sm transition-all duration-150"
-            :class="hoveredMarkId === mark.id ? 'scale-125' : ''"
-            :style="{
-              backgroundColor: mark.color || '#3B82F6',
-              boxShadow: hoveredMarkId === mark.id
-                ? `0 0 8px ${mark.color || '#3B82F6'}`
-                : `0 0 4px ${mark.color || '#3B82F6'}`,
-            }"
-          />
-        </div>
-
-        <!-- 悬停 tooltip（放在进度条内部上方） -->
-        <div
-          v-if="tooltip.visible"
-          class="absolute top-0 left-0 pointer-events-none z-20"
-          :style="{ left: `${tooltip.left}px`, transform: 'translateX(-50%) translateY(-115%)' }"
-        >
-          <div class="bg-black/85 text-white text-[11px] px-2 py-1 rounded-md whitespace-nowrap shadow-lg">
-            <div class="font-semibold">{{ tooltip.text }}</div>
-            <div v-if="tooltip.detail" class="text-[10px] opacity-80 max-w-[160px] truncate">
-              {{ tooltip.detail }}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 起止时间标签 -->
-      <div class="flex justify-between text-[10px] text-gray-400 dark:text-gray-500 mt-1 px-1">
-        <span>00:00</span>
-        <span>{{ formatTime(trackDuration) }}</span>
+        {{ tooltip.text }}
       </div>
     </div>
 
-    <!-- 卡片流 -->
-    <div class="space-y-2">
+    <!-- 卡片流（时间升序） -->
+    <div class="flex-1 min-w-0 space-y-3">
       <TimelineCard
         v-for="mark in marks"
         :key="mark.id"
@@ -211,10 +172,9 @@ function formatTime(seconds: number): string {
         @toggle-menu="id => emit('toggle-menu', id)"
         @open-tag-picker="m => emit('open-tag-picker', m)"
       />
-    </div>
-
-    <div v-if="marks.length === 0" class="text-center py-6 text-gray-400 dark:text-gray-500 text-sm">
-      暂无视频标记
+      <div v-if="marks.length === 0" class="text-center py-6 text-neutral-400 dark:text-neutral-500 text-sm">
+        暂无视频标记
+      </div>
     </div>
   </div>
 </template>

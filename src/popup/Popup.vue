@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watchEffect } from 'vue'
 import { sendMessage } from 'webext-bridge/popup'
-import { usePreferredDark } from '@vueuse/core'
 import { marksByUrl } from '~/logic/storage'
+import { isDark } from '~/logic/theme'
 
 import { isPageBlacklisted, settings } from '~/logic/settings'
 
@@ -49,7 +49,6 @@ function reloadPage() {
 }
 
 // Automatically apply dark mode class to the root element
-const isDark = usePreferredDark()
 watchEffect(() => {
   if (isDark.value)
     document.documentElement.classList.add('dark')
@@ -94,7 +93,7 @@ async function openSidePanel() {
 </script>
 
 <template>
-  <main class="w-[300px] px-4 py-5 text-center text-gray-700 dark:text-gray-200">
+  <main class="w-[300px] px-4 py-5 text-center text-neutral-700 dark:text-neutral-200">
     <div class="flex items-center justify-center gap-[12px] mb-[24px]">
       <img
         :src="iconUrl"
@@ -108,7 +107,7 @@ async function openSidePanel() {
 
     <p class="mb-[24px] text-center text-[14px]">
       你已经创建了
-      <strong class="text-blue-600 text-base">{{ totalMarks }}</strong>
+      <strong class="text-amber-600 text-base">{{ totalMarks }}</strong>
       条标记。
     </p>
 
@@ -117,7 +116,7 @@ async function openSidePanel() {
         设置
       </button>
       <button
-        class="px-4 py-2 rounded-md bg-blue-600 text-white font-medium shadow-sm transition-colors hover:bg-blue-700"
+        class="px-4 py-2 rounded-md bg-amber-500 text-neutral-900 font-medium transition-colors hover:bg-amber-600"
         @click="openSidePanel"
       >
         打开侧边栏

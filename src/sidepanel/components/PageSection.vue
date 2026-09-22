@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { MENU_HEIGHTS, shouldMenuOpenUp } from '../composables/menuPosition'
+import { FOLD } from '../composables/foldAnimation'
+import FoldPanel from './FoldPanel.vue'
 import { useUIState } from '../composables/useUIState'
 import MarkItem from './MarkItem.vue'
 import TimelineView from './TimelineView.vue'
+import { Z_LAYERS } from '~/logic/layers'
 import type { Mark } from '~/logic/storage'
 import type { MarkGroup } from '~/logic/tagTree'
 
@@ -49,33 +53,58 @@ const emit = defineEmits<{
 
 function getLevelClass(level: number) {
   const levelStyles: Record<number, string> = {
-    1: 'text-sm font-bold text-gray-900 dark:text-gray-100',
-    2: 'text-sm font-semibold text-gray-800 dark:text-gray-200',
-    3: 'text-xs font-semibold text-gray-700 dark:text-gray-300',
-    4: 'text-xs font-medium text-gray-600 dark:text-gray-400',
-    5: 'text-xs font-medium text-gray-600 dark:text-gray-400',
-    6: 'text-xs font-medium text-gray-600 dark:text-gray-400',
+    1: 'text-sm font-bold text-neutral-900 dark:text-neutral-100',
+    2: 'text-sm font-semibold text-neutral-800 dark:text-neutral-200',
+    3: 'text-xs font-semibold text-neutral-700 dark:text-neutral-300',
+    4: 'text-xs font-medium text-neutral-600 dark:text-neutral-400',
+    5: 'text-xs font-medium text-neutral-600 dark:text-neutral-400',
+    6: 'text-xs font-medium text-neutral-600 dark:text-neutral-400',
   }
-  return levelStyles[level] || 'text-xs font-medium text-gray-500 dark:text-gray-500'
+  return levelStyles[level] || 'text-xs font-medium text-neutral-500 dark:text-neutral-500'
 }
 
-function getLevelBorderStyle(level: number) {
+function getLevelStripeStyle(level: number) {
+  // 层级指示条用 inset box-shadow 而非 border-left：不参与盒模型，
+  // 杜绝任何潜在的边框宽度参与布局计算（母库用户反馈排查项）
   const styles: Record<number, Record<string, string>> = {
-    1: { borderLeft: '4px solid #3B82F6' },
-    2: { borderLeft: '3px solid #60A5FA' },
-    3: { borderLeft: '2px solid #93C5FD' },
-    4: { borderLeft: '1px solid #BFDBFE' },
-    5: { borderLeft: '1px solid #BFDBFE' },
-    6: { borderLeft: '1px solid #BFDBFE' },
+    1: { boxShadow: 'inset 4px 0 0 #F59E0B' },
+    2: { boxShadow: 'inset 3px 0 0 #FBBF24' },
+    3: { boxShadow: 'inset 2px 0 0 #FCD34D' },
+    4: { boxShadow: 'inset 1px 0 0 #FDE68B' },
+    5: { boxShadow: 'inset 1px 0 0 #FDE68B' },
+    6: { boxShadow: 'inset 1px 0 0 #FDE68B' },
   }
-  return styles[level] || { borderLeft: '1px solid #BFDBFE' }
+  return styles[level] || { boxShadow: 'inset 1px 0 0 #FDE68B' }
+}
+
+// --- 菜单翻向：底部空间不足时向上弹出（同 MarkItem） ---
+const urlMenuUp = ref(false)
+const groupMenuUp = ref(false)
+
+// --- 网页 header 高度测量（供章节组吸顶定位） ---
+const pageHeaderRef = ref<HTMLElement | null>(null)
+
+onMounted(() => {
+  // 所有网页 header 行高一致，任一实例测量即可
+  if (pageHeaderRef.value)
+    document.documentElement.style.setProperty('--page-header-h', `${pageHeaderRef.value.offsetHeight}px`)
+})
+
+function onUrlMenuClick(e: MouseEvent) {
+  urlMenuUp.value = shouldMenuOpenUp(e, MENU_HEIGHTS.url)
+  emit('toggle-url-menu', props.url)
+}
+
+function onGroupMenuClick(e: MouseEvent, groupTitle: string) {
+  groupMenuUp.value = shouldMenuOpenUp(e, MENU_HEIGHTS.group)
+  emit('toggle-group-menu', props.url, groupTitle)
 }
 
 function isGroupCollapsed(groupTitle: string): boolean {
   const state = props.collapsedStates[groupTitle]
   if (state !== undefined)
     return state
-  return props.urlData.totalMarks > 15
+  return props.urlData.totalMarks > FOLD.defaultCollapseMarkThreshold
 }
 
 // --- Timeline View ---
@@ -99,16 +128,22 @@ const sortedVideoMarks = computed(() => {
 
 <template>
   <section
-    class="bg-white border-gray-100 dark:bg-gray-800 dark:border-gray-700 rounded-lg border shadow-sm p-[12px]"
+    class="bg-white border-neutral-200 dark:bg-neutral-800 dark:border-neutral-700 rounded-md border p-[12px]"
   >
+    <!-- 网页级吸顶：top = 主 header 高 + 文件夹行高；两个 CSS 变量分别由
+         Sidepanel.vue / TagFolder.vue 用 ResizeObserver 运行时测量写入，fallback 值（120/40）为估计值。
+         层级 token 见 src/logic/layers.ts：stickyHeader > stickyFolder > stickyPage；
+         菜单打开时临时提升至 menuElevated（母库 Issue #79） -->
     <header
-      class="border-gray-200 dark:border-gray-700 group/page flex cursor-pointer items-center justify-between border-b pb-[8px] mb-[8px]"
+      ref="pageHeaderRef"
+      class="bg-white dark:border-neutral-700 group/page fold-sticky sticky top-[calc(var(--sidepanel-header-h,120px)+var(--folder-row-h,40px))] flex cursor-pointer select-none items-center justify-between border-b pb-[8px] mb-[8px] dark:bg-neutral-800"
+      :style="{ zIndex: activeUrlMenu === url ? Z_LAYERS.menuElevated : Z_LAYERS.stickyPage }"
       @click="emit('toggle-url-collapse', url)"
     >
       <div class="min-w-0 flex-1 flex items-center gap-2">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-[14px] w-[14px] flex-shrink-0 text-gray-400 transition-transform duration-200 group-hover/page:text-gray-600"
+          class="h-[14px] w-[14px] flex-shrink-0 text-neutral-400 transition-transform duration-200 group-hover/page:text-neutral-600"
           :class="{ 'rotate-[-90deg]': isCollapsed }"
           viewBox="0 0 20 20"
           fill="currentColor"
@@ -119,14 +154,15 @@ const sortedVideoMarks = computed(() => {
             clip-rule="evenodd"
           />
         </svg>
-        <h2 class="dark:text-gray-300 truncate text-sm font-semibold text-gray-700" :title="url">
+        <h2 class="dark:text-neutral-300 min-w-0 flex-1 truncate text-sm font-semibold text-neutral-700" :title="url">
           {{ urlData.pageTitle }}
         </h2>
+        <span class="text-neutral-400 text-xs font-normal flex-shrink-0">({{ urlData.totalMarks }})</span>
       </div>
       <div class="relative flex-shrink-0 flex items-center gap-1" @click.stop>
         <!-- 视图切换按钮 -->
         <button
-          class="text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300 rounded-full p-1 transition-colors"
+          class="text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300 rounded-full p-1 transition-colors"
           :title="isTimelineView ? '切换到列表视图' : '切换到时间轴视图'"
           @click="toggleTimelineView(url)"
         >
@@ -138,8 +174,8 @@ const sortedVideoMarks = computed(() => {
           </svg>
         </button>
         <button
-          class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-full p-1"
-          @click="emit('toggle-url-menu', url)"
+          class="text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 rounded-full p-1"
+          @click="onUrlMenuClick"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path
@@ -150,12 +186,13 @@ const sortedVideoMarks = computed(() => {
         <transition name="fade-scale">
           <div
             v-if="activeUrlMenu === url"
-            class="bg-white border-gray-200 dark:bg-gray-700 dark:border-gray-600 absolute right-0 z-20 mt-2 w-32 rounded-md border shadow-lg"
+            class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 w-32 rounded-md border"
+            :class="urlMenuUp ? 'bottom-full mb-2' : 'mt-2'"
           >
             <ul class="py-1">
               <li>
                 <button
-                  class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
+                  class="text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
                   @click="emit('export-markdown', urlData)"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
@@ -164,7 +201,7 @@ const sortedVideoMarks = computed(() => {
               </li>
               <li>
                 <button
-                  class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
+                  class="text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
                   @click="emit('open-tag-picker', url)"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -178,7 +215,7 @@ const sortedVideoMarks = computed(() => {
                   class="hover:bg-red-50 dark:hover:bg-red-900/50 flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 dark:text-red-400"
                   @click="emit('remove-all-marks', url)"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
                   </svg>
                   <span>清空标记</span>
@@ -189,118 +226,136 @@ const sortedVideoMarks = computed(() => {
         </transition>
       </div>
     </header>
-    <div v-if="!isCollapsed">
-      <!-- 时间轴视图 -->
-      <div v-if="isTimelineView" class="pt-2">
-        <TimelineView
-          :marks="sortedVideoMarks"
-          :url="url"
-          :expanded-texts="expandedTexts"
-          :expanded-notes="expandedNotes"
-          :editing-mark-id="editingMarkId"
-          :active-mark-menu="activeMarkMenu"
-          @goto="m => emit('goto-mark', m)"
-          @edit="m => emit('edit-mark', m)"
-          @save="(m, note) => emit('save-note', m, note)"
-          @cancel="() => emit('cancel-edit')"
-          @remove="m => emit('remove-mark', m)"
-          @copy="m => emit('copy-mark', m)"
-          @toggle-expand="id => emit('toggle-text-expansion', id)"
-          @toggle-note-expand="id => emit('toggle-note-expansion', id)"
-          @toggle-menu="id => emit('toggle-mark-menu', id)"
-          @open-tag-picker="m => emit('open-mark-tag-picker', url, m.id)"
-        />
-      </div>
-      <!-- 列表视图（原分组视图） -->
-      <div v-else>
-        <div v-for="group in urlData.groups" :key="group.title" class="group-container mt-1">
-          <header
-            class="group group-header hover:bg-gray-100 dark:hover:bg-gray-800 -mx-2 flex cursor-pointer items-center justify-between px-2 py-2 transition-colors"
-            :style="getLevelBorderStyle(group.level)"
-            @click="emit('toggle-group', url, group.title, urlData.totalMarks)"
-          >
-            <h3 class="min-w-0 flex-1 truncate" :class="getLevelClass(group.level)">
-              {{ group.title }}
-              <span class="text-gray-400 text-xs font-normal">({{ group.count }})</span>
-            </h3>
-            <div class="relative ml-2 flex-shrink-0" @click.stop>
-              <button
-                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full p-1 opacity-0 transition-opacity group-hover:opacity-100"
-                title="分组操作"
-                @click="emit('toggle-group-menu', url, group.title)"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"
-                  />
-                </svg>
-              </button>
-              <transition name="fade-scale">
-                <div
-                  v-if="activeGroupMenu === `${url}|${group.title}`"
-                  class="bg-white border-gray-200 dark:bg-gray-700 dark:border-gray-600 absolute right-0 z-20 mt-1 w-36 rounded-md border shadow-lg"
+    <FoldPanel :show="!isCollapsed" :mark-count="urlData.totalMarks">
+      <div>
+        <!-- 时间轴视图 -->
+        <div v-if="isTimelineView" class="pt-2">
+          <TimelineView
+            :marks="sortedVideoMarks"
+            :url="url"
+            :expanded-texts="expandedTexts"
+            :expanded-notes="expandedNotes"
+            :editing-mark-id="editingMarkId"
+            :active-mark-menu="activeMarkMenu"
+            @goto="m => emit('goto-mark', m)"
+            @edit="m => emit('edit-mark', m)"
+            @save="(m, note) => emit('save-note', m, note)"
+            @cancel="() => emit('cancel-edit')"
+            @remove="m => emit('remove-mark', m)"
+            @copy="m => emit('copy-mark', m)"
+            @toggle-expand="id => emit('toggle-text-expansion', id)"
+            @toggle-note-expand="id => emit('toggle-note-expansion', id)"
+            @toggle-menu="id => emit('toggle-mark-menu', id)"
+            @open-tag-picker="m => emit('open-mark-tag-picker', url, m.id)"
+          />
+        </div>
+        <!-- 列表视图（分组视图） -->
+        <div v-else>
+          <div v-for="group in urlData.groups" :key="group.title" class="group-container">
+            <header
+              class="group group-header mt-1 fold-sticky sticky top-[calc(var(--sidepanel-header-h,120px)+var(--folder-row-h,40px)+var(--page-header-h,38px))] -mx-2 flex cursor-pointer select-none items-center justify-between bg-white px-2 py-2 transition-colors dark:bg-neutral-800"
+              :style="[getLevelStripeStyle(group.level), { zIndex: activeGroupMenu === `${url}|${group.title}` ? Z_LAYERS.menuElevated : Z_LAYERS.stickyChapter }]"
+              @click="emit('toggle-group', url, group.title, urlData.totalMarks)"
+            >
+              <h3 class="min-w-0 flex-1 truncate" :class="getLevelClass(group.level)">
+                {{ group.title }}
+              </h3>
+              <span class="text-neutral-400 text-xs font-normal flex-shrink-0">({{ group.count }})</span>
+              <div class="relative ml-2 flex-shrink-0" @click.stop>
+                <button
+                  class="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 rounded-full p-1 opacity-0 transition-opacity group-hover:opacity-100"
+                  title="分组操作"
+                  @click="e => onGroupMenuClick(e, group.title)"
                 >
-                  <ul class="py-1">
-                    <li>
-                      <button
-                        class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm"
-                        @click="emit('export-group', url, group)"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                        <span>导出</span>
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        class="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm"
-                        @click="emit('open-group-tag-picker', url, group.title)"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.266 0 .52.105.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-                        </svg>
-                        <span>管理标签</span>
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        class="hover:bg-red-50 dark:hover:bg-red-900/50 flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-red-600 dark:text-red-400"
-                        @click="emit('remove-group-marks', url, group)"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                        </svg>
-                        <span>删除标记</span>
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              </transition>
-            </div>
-          </header>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                      d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"
+                    />
+                  </svg>
+                </button>
+                <transition name="fade-scale">
+                  <div
+                    v-if="activeGroupMenu === `${url}|${group.title}`"
+                    class="bg-white border-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 absolute right-0 w-36 rounded-md border"
+                    :class="groupMenuUp ? 'bottom-full mb-2' : 'mt-1'"
+                  >
+                    <ul class="py-1">
+                      <li>
+                        <button
+                          class="text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm"
+                          @click="emit('export-group', url, group)"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                          <span>导出</span>
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          class="text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm"
+                          @click="emit('open-group-tag-picker', url, group.title)"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.266 0 .52.105.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                          </svg>
+                          <span>管理标签</span>
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          class="hover:bg-red-50 dark:hover:bg-red-900/50 flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-red-600 dark:text-red-400"
+                          @click="emit('remove-group-marks', url, group)"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                          </svg>
+                          <span>删除标记</span>
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                </transition>
+              </div>
+            </header>
 
-          <ul v-if="!isGroupCollapsed(group.title)" class="space-y-3 pl-3 pt-2">
-            <MarkItem
-              v-for="mark in group.marks"
-              :key="mark.id"
-              :mark="mark"
-              :is-expanded="expandedTexts.has(mark.id)"
-              :is-note-expanded="expandedNotes.has(mark.id)"
-              :is-editing="editingMarkId === mark.id"
-              :active-menu="activeMarkMenu"
-              @goto="m => emit('goto-mark', m)"
-              @edit="m => emit('edit-mark', m)"
-              @save="(m, note) => emit('save-note', m, note)"
-              @cancel="() => emit('cancel-edit')"
-              @remove="m => emit('remove-mark', m)"
-              @copy="m => emit('copy-mark', m)"
-              @toggle-expand="id => emit('toggle-text-expansion', id)"
-              @toggle-note-expand="id => emit('toggle-note-expansion', id)"
-              @toggle-menu="id => emit('toggle-mark-menu', id)"
-              @open-tag-picker="m => emit('open-mark-tag-picker', url, m.id)"
-            />
-          </ul>
+            <FoldPanel :show="!isGroupCollapsed(group.title)" :mark-count="group.count">
+              <ul class="space-y-3 pl-3 pt-2">
+                <MarkItem
+                  v-for="mark in group.marks"
+                  :key="mark.id"
+                  :mark="mark"
+                  :is-expanded="expandedTexts.has(mark.id)"
+                  :is-note-expanded="expandedNotes.has(mark.id)"
+                  :is-editing="editingMarkId === mark.id"
+                  :active-menu="activeMarkMenu"
+                  @goto="m => emit('goto-mark', m)"
+                  @edit="m => emit('edit-mark', m)"
+                  @save="(m, note) => emit('save-note', m, note)"
+                  @cancel="() => emit('cancel-edit')"
+                  @remove="m => emit('remove-mark', m)"
+                  @copy="m => emit('copy-mark', m)"
+                  @toggle-expand="id => emit('toggle-text-expansion', id)"
+                  @toggle-note-expand="id => emit('toggle-note-expansion', id)"
+                  @toggle-menu="id => emit('toggle-mark-menu', id)"
+                  @open-tag-picker="m => emit('open-mark-tag-picker', url, m.id)"
+                />
+              </ul>
+            </FoldPanel>
+          </div>
         </div>
       </div>
-    </div>
+    </FoldPanel>
   </section>
 </template>
+
+<style scoped>
+/* 吸顶约束范围：group-container 若为普通块级盒，收起后容器高度只剩 header 本身，
+   sticky 底部约束立即失效——吸顶中的 header 会弹回自然位置（深吸顶时直接飞出视口
+   顶部），展开时面板长高又中途吸回，即收起/展开的上下抖动。
+   display:contents 使 header 的 sticky 约束父级成为整个分组列表容器：
+   收起/展开全程稳定吸顶；后续 header 滚到吸顶线后按 DOM 序覆盖前一个（堆叠吸顶）。
+   间距 mt-1 相应从容器移到 header 上（容器已无盒子，margin 不生效）。
+   （母库同款修复） */
+.group-container {
+  display: contents;
+}
+</style>
